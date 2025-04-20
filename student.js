@@ -530,6 +530,7 @@ document.addEventListener('DOMContentLoaded', initRankings);
 function signOut() {
     // Clear any session or local storage data (if applicable)
     alert("You have been signed out.");
+    localStorage.clear();
     // Redirect to the login page
     window.location.href = "register.html"; // Replace with the actual login page URL
 }

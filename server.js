@@ -127,8 +127,40 @@ app.post("/verify-code", (req, res) => {
     }
 });
 
-app.post("/create-class", (req, res) => {
+app.post("/create-class", async (req, res) => {
+    const { USERNAME, CLASS_NAME, CLASS_CODE, SECTION, NAME } = req.body;
 
+    try {
+        const database = client.db(dbName);
+        const collection = database.collection("LT_Classes");
+
+        await collection.insertOne({
+            USERNAME,
+            CLASS_NAME,
+            CLASS_CODE,
+            SECTION,
+            NAME,
+        });
+
+        res.status(200).json({ message: 'Class registered successfully.' });
+    } catch (error) {
+        console.error(error);
+        res.status(500).send('Error saving class to database.');
+    }
+});
+
+// server.js or routes file
+app.get('/classes', async (req, res) => {
+    try {
+        const database = client.db(dbName);
+        const collection = database.collection('LT_Classes');
+
+        const classes = await collection.find().toArray();  // Fetch all classes from the collection
+        res.json(classes);  // Send the classes as a JSON response
+    } catch (err) {
+        console.error('Error fetching classes:', err);
+        res.status(500).json({ message: 'Failed to fetch classes' });
+    }
 });
 
 // --- START SERVER AND CONNECT DB ---

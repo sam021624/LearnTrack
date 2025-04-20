@@ -187,9 +187,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    USERNAME: username, PASSWORD: password, user: {
-
-                    }
+                    USERNAME: username, PASSWORD: password
                 })
             })
                 .then(response => {
@@ -215,4 +213,3 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     }
 });
-localhost

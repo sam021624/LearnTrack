@@ -1,3 +1,8 @@
+const userData = [
+    userName = '',
+    userEmail = ''
+]
+
 const sampleStudents = [
     { name: "Alice Johnson", image: "https://i.pravatar.cc/150?img=1" },
     { name: "Bob Smith", image: "https://i.pravatar.cc/150?img=2" },
@@ -67,6 +72,9 @@ document.addEventListener('DOMContentLoaded', function () {
         document.getElementById('userName').textContent = user.FULL_NAME;
         document.getElementById('userEmail').textContent = user.EMAIL;
         document.getElementById('userEmailDisplay').textContent = user.EMAIL;
+
+        userName = user.FULL_NAME;
+        userEmail = user.EMAIL;
     }
 
     // Initialize UI
@@ -163,6 +171,23 @@ function createClass() {
         return;
     }
 
+    fetch('http://localhost:3000/create-class', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            USERNAME: userName,
+            CLASS_NAME: className,
+            CLASS_CODE: generateClassCode(),
+            SECTION: section,
+            NAME: teacherName,
+        })
+    })
+        .then(response => {
+            if (response.ok) return response.json(); // ✅ this parses it as JSON
+            else throw new Error('Failed to create.');
+        })
+
+
     setTimeout(() => {
         const newClass = { className, section, teacherName };
         const savedClasses = JSON.parse(localStorage.getItem('classes')) || [];
@@ -181,7 +206,6 @@ function deleteClass(index, event) {
         const savedClasses = JSON.parse(localStorage.getItem('classes')) || [];
         savedClasses.splice(index, 1);
         localStorage.setItem('classes', JSON.stringify(savedClasses));
-        renderClasses();
     }
 }
 
@@ -203,34 +227,46 @@ function showSkeletonLoader() {
     `;
 }
 
-function renderClasses() {
-    showSkeletonLoader();
+async function renderClasses() {
+    showSkeletonLoader(); // Assuming this shows a loading indicator
 
-    setTimeout(() => {
-        const savedClasses = JSON.parse(localStorage.getItem('classes')) || [];
+    try {
+        // Fetch classes from the backend
+        const response = await fetch('http://localhost:3000/classes');
+        if (!response.ok) {
+            throw new Error('Failed to fetch classes');
+        }
+
+        const classes = await response.json(); // Parse the JSON response
+
         const container = document.getElementById('classContainer');
-        container.innerHTML = '';
+        container.innerHTML = ''; // Clear any existing content
 
-        if (savedClasses.length === 0) {
+        if (classes.length === 0) {
             container.innerHTML = '<p class="no-classes">No classes found</p>';
             return;
         }
 
-        savedClasses.forEach((cls, index) => {
+        // Loop through the fetched classes and display them
+        classes.forEach((cls, index) => {
             const classBox = document.createElement('div');
             classBox.classList.add('class-box');
             classBox.innerHTML = `
                 <section class="class-info" onclick="openClassPage(${JSON.stringify(cls).replace(/"/g, '&quot;')})">
-                    <h3>${cls.className}</h3>
-                    <p>Section: ${cls.section || "N/A"}</p>
-                    <p>Teacher: ${cls.teacherName || "N/A"}</p>
+                    <h3>${cls.CLASS_NAME}</h3> <!-- Use correct property names from DB -->
+                    <p>Section: ${cls.SECTION || "N/A"}</p>
+                    <p>Teacher: ${cls.NAME || "N/A"}</p>
                     <button class="delete-btn" onclick="deleteClass(${index}, event)">Delete</button>
                 </section>
                 <section class="class-actions"></section>
             `;
             container.appendChild(classBox);
         });
-    }, 1000);
+    } catch (error) {
+        console.error('Error fetching classes:', error);
+        const container = document.getElementById('classContainer');
+        container.innerHTML = '<p class="error-message">Failed to load classes. Please try again later.</p>';
+    }
 }
 
 // Enhanced Class Page Functions
@@ -627,9 +663,8 @@ function updateStudentAvatars(students) {
     }
 }
 
-
-
 function signOut() {
+    localStorage.clear();
     alert("You have been signed out.");
     window.location.href = "register.html";
 }
