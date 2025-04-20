@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Homepage</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="student.css">
+</head>
+
+<body>
+    <div class="sidebar">
+        <section class="sidebar-header">
+            <img src="Picture/logo.png" alt="LearnTrack Logo">
+            <div class="icon-buttons">
+                <!-- Notification Button -->
+                <button class="icon-button notification-button" aria-label="Notifications">
+                    <i class="fas fa-bell"></i>
+                    <span class="badge">2</span>
+                </button>
+
+                <!-- Profile Button -->
+                <div class="profile-dropdown">
+                    <button class="icon-button profile-button" aria-label="User Profile"
+                        onclick="toggleProfileDropdown()">
+                        <i class="fas fa-user"></i>
+                    </button>
+                    <div class="dropdown-content" id="profileDropdown">
+                        <div class="dropdown-header">
+                            <p>Signed in as</p>
+                            <p class="user-email-display" id="userEmailDisplay">bacang.lancekirby@gmail.com</p>
+                        </div>
+                        <a href="#" class="dropdown-item">
+                            <i class="fas fa-user-circle"></i> Profile
+                        </a>
+                        <a href="#" class="dropdown-item" onclick="signOut()">
+                            <i class="fas fa-sign-out-alt"></i> Sign out
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <div class="user-profile">
+            <div class="profile-picture">
+                <img src="Picture/gmailprofile.png" alt="User Profile">
+            </div>
+            <div class="user-info">
+                <h3 class="user-name" id="userName">Lance Kirby Bacang</h3>
+                <p class="user-email" id="userEmail">bacang.lancekirby@gmail.com</p>
+            </div>
+        </div>
+
+        <a href="#" onclick="showContent('dashboard')">
+            <i class="fas fa-tachometer-alt"></i> Dashboard
+        </a>
+        <div class="classes-container">
+            <a href="#" class="classes-toggle" onclick="redirectToMyClassesSection(event)">
+                <i class="fas fa-chalkboard-teacher"></i> Courses
+                <i class="fas fa-chevron-down dropdown-icon"></i>
+            </a>
+            <div class="joined-classes">
+                <!-- Dynamically populated class links -->
+                <a href="#" class="class-link" data-class="SE101">
+                    <i class="fas fa-book"></i> SE101-Software Engineering
+                </a>
+                <a href="#" class="class-link" data-class="CS102">
+                    <i class="fas fa-book"></i> CS102-Data Structures
+                </a>
+            </div>
+        </div>
+        <a href="#" onclick="showContent('rankings')">
+            <i class="fas fa-trophy"></i> Rankings
+        </a>
+    </div>
+
+    <!-- Navigation Bar -->
+    <nav class="navbar">
+        <button class="burger-menu-btn" onclick="toggleSidebar()" aria-label="Toggle Sidebar">
+            <i class="fas fa-bars"></i>
+        </button>
+        <!-- Other navbar content -->
+        <button class="join-class-btn" onclick="openModal()">
+            <i class="fas fa-plus"></i>
+        </button>
+        <!-- Fullscreen Button -->
+        <button class="fullscreen-btn" onclick="toggleFullscreen()" aria-label="Fullscreen">
+            <i class="fas fa-expand"></i>
+        </button>
+    </nav>
+
+    <div class="content">
+        <!-- Main content -->
+    </div>
+
+    <div class="content" id="dashboard">
+        <header>
+            <div class="header-container">
+                <h2 class="header-h2">Dashboard</h2>
+                <h1>Announcement</h1>
+            </div>
+        </header>
+        <div class="dashboard-content" id="announcements-area">
+            <!-- Announcement containers will be added here dynamically -->
+        </div>
+    </div>
+
+    <div class="content" id="classes" style="display:none;">
+        <header>
+            <div class="header-container">
+                <h2 class="header-h2">Classes</h2>
+                <h1>Learning Management</h1>
+            </div>
+        </header>
+        <div class="classes-default-container">
+            <div class="class-cards-container">
+                <!-- Class cards will be added here dynamically -->
+            </div>
+        </div>
+    </div>
+
+    <div class="content" id="class-specific" style="display:none;">
+        <header>
+            <div class="header-container">
+                <h2 class="header-h2">Class Details</h2>
+                <h1>Class Content</h1>
+            </div>
+        </header>
+        <div class="class-header">
+            <button class="back-to-classes" onclick="showContent('classes')">
+                <i class="fas fa-arrow-left"></i> Back to Classes
+            </button>
+            <h2 id="class-title">Class Title</h2>
+        </div>
+        <div class="class-content">
+            <!-- Class content will be loaded here -->
+        </div>
+    </div>
+
+    <div class="content" id="rankings" style="display:none;">
+        <header>
+            <div class="header-container">
+                <h2 class="header-h2">Rankings</h2>
+                <h1>Class Leaderboards</h1>
+            </div>
+        </header>
+        <div class="rankings-container">
+            <!-- Left: Class Selection -->
+            <div class="class-sidebar">
+                <h3>Your Classes</h3>
+                <ul class="class-list">
+                    <li class="active" data-class="SE101">SE101</li>
+                    <li data-class="CS102">CS102</li>
+                </ul>
+            </div>
+            <!-- Middle: Dynamically Generated Podium -->
+            <div class="podium-container">
+                <div class="podium"></div>
+            </div>
+            <!-- Right: Rankings List -->
+            <div class="rankings-list-container">
+                <div class="rankings-list"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Join Class Modal -->
+    <div class="modal" id="joinClassModal">
+        <div class="modal-content">
+            <h3 class="modal-title">Join Class</h3>
+            <p>Ask your teacher for the class code, then enter it here.</p>
+            <input type="text" class="modal-input" placeholder="Class code">
+            <p>To sign in with a class code:</p>
+            <ul>
+                <li>Use an authorized account</li>
+                <li>Use a class code with 5-8 letters or numbers, and no spaces or symbols</li>
+            </ul>
+            <div class="modal-actions">
+                <button class="modal-btn modal-btn-cancel" onclick="closeModal()">Cancel</button>
+                <button class="modal-btn modal-btn-join">Join</button>
+            </div>
+        </div>
+    </div>
+    <script src="student.js" defer></script>
+</body>
+
+</html>

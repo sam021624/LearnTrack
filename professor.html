@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, 1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Homepage</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  <link rel="stylesheet" href="professor.css">
+</head>
+
+<body>
+  <div class="sidebar">
+    <section class="sidebar-header">
+      <img src="Picture/logo.png" alt="LearnTrack Logo">
+      <div class="icon-buttons">
+        <!-- Notification Button -->
+        <button class="icon-button notification-button" aria-label="Notifications">
+          <i class="fas fa-bell"></i>
+          <span class="badge">2</span>
+        </button>
+
+        <!-- Profile Button -->
+
+        <div class="profile-dropdown">
+          <button class="icon-button profile-button" aria-label="User Profile" onclick="toggleProfileDropdown()">
+            <i class="fas fa-user"></i>
+          </button>
+          <div class="dropdown-content" id="profileDropdown">
+            <div class="dropdown-header">
+              <p>Signed in as</p>
+              <p class="user-email-display" id="userEmailDisplay">bacang.lancekirby@gmail.com</p>
+            </div>
+            <a href="#" class="dropdown-item">
+              <i class="fas fa-user-circle"></i> Profile
+            </a>
+            <a href="#" class="dropdown-item" onclick="signOut()">
+              <i class="fas fa-sign-out-alt"></i> Sign out
+            </a>
+          </div>
+        </div>
+    </section>
+
+    <div class="user-profile">
+      <div class="profile-picture">
+        <img src="Picture/gmailprofile.png" alt="User Profile">
+      </div>
+      <div class="user-info">
+        <h3 class="user-name" id="userName">Lance Kirby Bacang</h3>
+        <p class="user-email" id="userEmail">bacang.lancekirby@gmail.com</p>
+      </div>
+    </div>
+
+
+    <a href="#" onclick="showContent('dashboard')">
+      <i class="fas fa-tachometer-alt"></i> Dashboard
+    </a>
+    <a href="#" onclick="showContent('classes')">
+      <i class="fas fa-book"></i> Classes
+    </a>
+    <a href="#" onclick="showContent('rankings')">
+      <i class="fas fa-trophy"></i> Rankings
+    </a>
+  </div>
+
+  <!-- Navigation Bar -->
+  <nav class="navbar">
+    <button class="join-class-btn" onclick="openModal()">
+      <i class="fas fa-plus"></i>
+    </button>
+  </nav>
+
+  <div class="content" id="dashboard">
+    <header class="content-header">
+      <div class="header-container">
+        <h2 class="header-h2">Dashboard</h2>
+        <h1>Announcement</h1>
+      </div>
+    </header>
+
+    <div class="content-body">
+      <div class="dashboard-grid">
+        <div class="enrolled-courses">
+          <i class="fas fa-graduation-cap"></i>
+          <span id="course-count">0</span>
+          <span>Enrolled Courses</span>
+        </div>
+
+        <div class="active-courses">
+          <i class="fas fa-box-open"></i>
+          <span id="course-count">0</span>
+          <span>Active Courses</span>
+        </div>
+
+        <div class="sections">
+          <i class="fas fa-graduation-cap"></i>
+          <span id="course-count">0</span>
+          <span>Sections</span>
+        </div>
+
+        <div class="total-students">
+          <i class="fas fa-user-graduate"></i>
+          <span id="course-count">0</span>
+          <span>Total Students</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="content" id="classes" style="display:none;">
+    <header class="content-header">
+      <div class="header-container">
+        <h2 class="header-h2">Course</h2>
+        <h1>Classroom</h1>
+      </div>
+    </header>
+    <div class="content-body">
+      <div id="classContainer">
+
+      </div> <!-- Placeholder for created classes -->
+    </div>
+  </div>
+
+  <div class="content" id="rankings" style="display:none;">
+    <header class="content-header">
+      <div class="header-container">
+        <h2 class="header-h2">Rankings</h2>
+        <h1>Class Leaderboards</h1>
+      </div>
+    </header>
+
+    <div class="content-body">
+
+    </div>
+  </div>
+
+  <!-- Add this before your modals -->
+  <!-- Add this to your HTML -->
+  <div class="content" id="classPage" style="display: none;">
+    <header>
+      <div class="header-container">
+        <div class="class-header-nav">
+          <div>
+            <h2 class="header-h2" id="classPageCourse">Course</h2>
+            <h1 id="classPageClassroom">Classroom</h1>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <div class="class-page-container">
+      <!-- Container 1 -->
+      <div class="class-info-container">
+        <div class="class-meta">
+          <div>
+            <h1 id="classNameDisplay">Class Name</h1>
+            <h3 id="sectionDisplay">N/A</p>
+              <h3 id="professorDisplay">N/A</p>
+          </div>
+        </div>
+
+        <div class="classCode-students-container">
+          <div class="class-code-box">
+            <h4 class="classCodeh4">Class Code</h4>
+            <div class="class-code-box2">
+              <div class="class-code-display" id="classCodeDisplay">ABCD12</div>
+              <button class="secondary-btn small-btn" onclick="copyClassCode()">
+                <i class="fas fa-copy"></i> Copy
+              </button>
+            </div>
+          </div>
+
+          <div class="class-students">
+            <div>
+              <div class="class-students-2">
+                <h4 class="studentsh4">Students <span class="student-count">(0)</span></h4>
+                <button class="view-all-btn" onclick="viewAllStudents()">
+                  <i class="fas fa-users"></i> View All
+                </button>
+              </div>
+              <div class="student-avatars" id="studentAvatars">
+                <div class="empty-avatar"><i class="fas fa-user-plus"></i></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Container 2 -->
+      <div class="announcement-form-container card">
+        <h3><i class="fas fa-bullhorn"></i> New Announcement</h3>
+        <div class="form-content">
+          <textarea id="announcementText" placeholder="Share something with your class..." rows="3"></textarea>
+          <div class="form-actions">
+            <div class="file-upload">
+              <label for="fileUpload" class="file-upload-btn">
+                <i class="fas fa-paperclip"></i> Attach File
+                <input type="file" id="fileUpload" style="display: none;" onchange="handleFileUpload(event)">
+              </label>
+              <button class="file-upload-btn" onclick="openGoogleDrivePicker()">
+                <i class="fab fa-google-drive"></i> Drive
+              </button>
+              <button class="file-upload-btn" onclick="addYouTubeVideo()">
+                <i class="fab fa-youtube"></i> YouTube
+              </button>
+              <button class="file-upload-btn" onclick="addLink()">
+                <i class="fas fa-link"></i> Link
+              </button>
+              <span id="fileName" class="file-name-display">No file chosen</span>
+            </div>
+            <button class="primary-btn" onclick="postAnnouncement()">
+              <i class="fas fa-paper-plane"></i> Post
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Container 3 -->
+      <div class="announcements-feed">
+        <div class="feed-header">
+          <h3><i class="fas fa-stream"></i> Class Feed</h3>
+          <div class="sort-options">
+            <span>Sort by:</span>
+            <select id="sortFeed">
+              <option value="newest">Newest First</option>
+              <option value="oldest">Oldest First</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="empty-state card" id="noAnnouncements">
+          <i class="fas fa-bullhorn"></i>
+          <h4>No announcements yet</h4>
+          <p>Be the first to share something with your class</p>
+        </div>
+
+        <div id="announcementsList" class="announcements-feed">
+          <!-- Announcements will be dynamically added here -->
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="content" id="allStudentsPage" style="display: none;">
+    <header>
+      <div class="header-container">
+        <button class="back-btn" onclick="backToClassPage()">
+          <i class="fas fa-arrow-left"></i> Back to Class
+        </button>
+        <h2 class="header-h2">Students</h2>
+        <h1 id="allStudentsClassTitle">Class Name</h1>
+      </div>
+    </header>
+
+    <div class="all-students-container">
+      <div class="students-grid" id="allStudentsGrid"></div>
+    </div>
+  </div>
+
+
+  <!-- Create Class Modal -->
+  <div class="modal" id="createClassModal">
+    <div class="modal-content">
+      <h3 class="modal-title">Create Class</h3>
+      <input type="text" id="classNameInput" class="modal-input" placeholder="Class name / Subject">
+      <input type="text" class="modal-input" placeholder="Section">
+      <input type="text" class="modal-input" placeholder="Your Name">
+      <div class="modal-actions">
+        <button class="modal-btn modal-btn-cancel" onclick="closeModal()">Cancel</button>
+        <button class="modal-btn modal-btn-create">Create</button>
+      </div>
+    </div>
+  </div>
+  <script src="professor.js" defer></script>
+
+  <!-- Loading Overlay -->
+  <div id="loadingOverlay" class="loading-overlay" style="display: none;">
+    <div class="loading-spinner"></div>
+  </div>
+
+  <!-- Skeleton Loading for Classes -->
+  <div id="skeletonLoading" style="display: none;">
+    <div class="class-container">
+      <!-- Repeat this for however many skeleton cards you want to show -->
+      <div class="class-box skeleton-card" style="height: 250px;"></div>
+      <div class="class-box skeleton-card" style="height: 250px;"></div>
+      <div class="class-box skeleton-card" style="height: 250px;"></div>
+    </div>
+  </div>
+
+</body>
+
+</html>
