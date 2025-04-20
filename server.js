@@ -127,6 +127,10 @@ app.post("/verify-code", (req, res) => {
     }
 });
 
+app.post("/create-class", (req, res) => {
+
+});
+
 // --- START SERVER AND CONNECT DB ---
 client.connect()
     .then(() => {

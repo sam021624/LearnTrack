@@ -186,7 +186,11 @@ document.addEventListener("DOMContentLoaded", function () {
             fetch('http://localhost:3000/login', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ USERNAME: username, PASSWORD: password })
+                body: JSON.stringify({
+                    USERNAME: username, PASSWORD: password, user: {
+
+                    }
+                })
             })
                 .then(response => {
                     if (response.ok) return response.json(); // ✅ this parses it as JSON
@@ -194,6 +198,8 @@ document.addEventListener("DOMContentLoaded", function () {
                 })
                 .then(data => {
                     console.log('Login successful:', data);
+
+                    localStorage.setItem('user', JSON.stringify(data.user));
 
                     if (data.role === 'Student') {
                         window.location.href = 'student.html';
