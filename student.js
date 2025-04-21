@@ -13,7 +13,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
 // Sample class data
-const userClasses = [
+let userClasses = [
     { id: 'SE101', name: 'SE101-Software Engineering', section: 'SBIT-2C', professor: 'Rose Anne Taniente' },
     { id: 'CS102', name: 'CS102-Data Structures', section: 'SBIT-2C', professor: 'Redentor Bucaling' }
 ];
@@ -157,10 +157,32 @@ async function joinClass() {
         const data = await response.json();
 
         alert("Successfully joined the class!");
+        document.querySelector('.modal-input').value = '';
 
     } catch (error) {
         console.error('Error joining class:', error);
         alert('An error occurred while joining the class.');
+    }
+}
+
+async function showJoinedClasses() {
+    const user = JSON.parse(localStorage.getItem("user")); // if stored as object
+    const username = user?.USERNAME;
+
+    const response = await fetch(`http://localhost:3000/student-classes?username=${username}`)
+    if (!response.ok) {
+        throw new Error('Failed to fetch classes');
+    }
+
+    const classes = await response.json(); // Parse the JSON response
+
+    const container = document.getElementById('classContainer');
+
+    userClasses = classes;
+
+    if (classes.length === 0) {
+        container.innerHTML = '<p class="no-classes">No classes found</p>';
+        return;
     }
 }
 
@@ -171,15 +193,15 @@ function setupClassCards() {
     userClasses.forEach(cls => {
         const card = document.createElement('div');
         card.className = 'class-card';
-        card.dataset.class = cls.id;
+        card.dataset.class = cls.CLASS_CODE; // changed from cls.id
 
         // Upper section
         const upperSection = document.createElement('div');
         upperSection.className = 'class-card-upper';
         upperSection.innerHTML = `
-            <h3>${cls.name}</h3>
-            <p>Prof. ${cls.professor}</p>
-            <p>${cls.section || 'Section not available'}</p>
+            <h3>${cls.CLASS_NAME}</h3>
+            <p>Prof. ${cls.NAME}</p>
+            <p>${cls.SECTION || 'Section not available'}</p>
         `;
 
         // Lower section
@@ -198,16 +220,17 @@ function setupClassCards() {
 
         // Add click event to the card
         card.addEventListener('click', function () {
-            redirectToClass(this.dataset.class);
+            redirectToClass(this.dataset.class); // Uses CLASS_CODE as identifier
         });
 
         // Append card to the container
         container.appendChild(card);
 
         // Fetch and display unfinished tasks
-        fetchUnfinishedTasks(cls.id, lowerSection.querySelector('.unfinished-tasks'));
+        fetchUnfinishedTasks(cls.CLASS_CODE, lowerSection.querySelector('.unfinished-tasks'));
     });
 }
+
 
 function fetchUnfinishedTasks(classId, taskListElement) {
     // Simulate fetching tasks from the database
@@ -384,13 +407,13 @@ document.addEventListener('DOMContentLoaded', function () {
     showContent('dashboard');
     loadAnnouncements();
 
+    showJoinedClasses();
     // Initialize class system
     populateClassLinks();
     setupClassLinks();
 
     // Set up modal button
     document.querySelector('.modal-btn-join').addEventListener('click', async () => joinClass());
-
 
     // Close dropdowns when clicking outside
     document.addEventListener('click', function (event) {

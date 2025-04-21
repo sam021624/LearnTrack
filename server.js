@@ -128,28 +128,6 @@ app.post("/verify-code", (req, res) => {
     }
 });
 
-app.post("/create-class", async (req, res) => {
-    const { USERNAME, CLASS_NAME, CLASS_CODE, SECTION, NAME } = req.body;
-
-    try {
-        const database = client.db(dbName);
-        const collection = database.collection("LT_Classes");
-
-        await collection.insertOne({
-            USERNAME,
-            CLASS_NAME,
-            CLASS_CODE,
-            SECTION,
-            NAME,
-        });
-
-        res.status(200).json({ message: 'Class registered successfully.' });
-    } catch (error) {
-        console.error(error);
-        res.status(500).send('Error saving class to database.');
-    }
-});
-
 app.post("/join-class/:classCode/students", async (req, res) => {
     const { student } = req.body;
     const classCode = req.params.classCode;
@@ -178,6 +156,28 @@ app.post("/join-class/:classCode/students", async (req, res) => {
     }
 });
 
+//PROFESSOR FUNCTIONALITIES
+app.post("/create-class", async (req, res) => {
+    const { USERNAME, CLASS_NAME, CLASS_CODE, SECTION, NAME } = req.body;
+
+    try {
+        const database = client.db(dbName);
+        const collection = database.collection("LT_Classes");
+
+        await collection.insertOne({
+            USERNAME,
+            CLASS_NAME,
+            CLASS_CODE,
+            SECTION,
+            NAME,
+        });
+
+        res.status(200).json({ message: 'Class registered successfully.' });
+    } catch (error) {
+        console.error(error);
+        res.status(500).send('Error saving class to database.');
+    }
+});
 
 app.get("/classes", async (req, res) => {
     try {
@@ -246,6 +246,29 @@ app.get("/section-count", async (req, res) => {
     } catch (err) {
         console.error("Error fetching section count:", err);
         res.status(500).json({ message: "Failed to fetch section count" });
+    }
+});
+
+//STUDENT FUNCTIONALITIES
+app.get("/student-classes", async (req, res) => {
+    try {
+        const username = req.query.username;
+
+        if (!username) {
+            return res.status(400).json({ message: "Username is required" });
+        }
+
+        const database = client.db(dbName);
+        const collection = database.collection("LT_Classes");
+
+        const classes = await collection.find({
+            STUDENTS: { $elemMatch: { USERNAME: username } }
+        }).toArray();
+
+        res.json(classes);
+    } catch (err) {
+        console.error("Error fetching classes:", err);
+        res.status(500).json({ message: "Failed to fetch classes" });
     }
 });
 
