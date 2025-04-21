@@ -3,6 +3,8 @@ const userData = [
     userEmail = ''
 ]
 
+const classData = [];
+
 const sampleStudents = [
     { name: "Alice Johnson", image: "https://i.pravatar.cc/150?img=1" },
     { name: "Bob Smith", image: "https://i.pravatar.cc/150?img=2" },
@@ -204,39 +206,43 @@ function createClass() {
     }, 800);
 }
 
-function deleteClass(index, event) {
-    event.stopPropagation();
-    if (confirm('Are you sure you want to delete this class?')) {
-        const savedClasses = JSON.parse(localStorage.getItem('classes')) || [];
-        savedClasses.splice(index, 1);
-        localStorage.setItem('classes', JSON.stringify(savedClasses));
+async function deleteClass(classCode) {
+    const confirmDelete = confirm(`Are you sure you want to delete class with code: ${classCode}?`);
+    if (!confirmDelete) return;
+
+    try {
+        const response = await fetch(`http://localhost:3000/delete-class/${classCode}`, {
+            method: 'DELETE',
+        });
+
+        if (!response.ok) {
+            throw new Error('Failed to delete class');
+        }
+
+        const result = await response.json();
+        console.log('Success:', result.message);
+
+        // Refresh the class list after deletion
+        showLoading();
+        setTimeout(() => {
+            document.getElementById(section).style.display = 'block';
+            hideLoading();
+            renderClasses();
+
+        }, 500);
+    } catch (error) {
+        console.error('Error deleting class:', error);
     }
 }
 
-// Loading States
-function showLoading() {
-    document.getElementById('loadingOverlay').style.display = 'flex';
-}
 
-function hideLoading() {
-    document.getElementById('loadingOverlay').style.display = 'none';
-}
 
-function showSkeletonLoader() {
-    const container = document.getElementById('classContainer');
-    container.innerHTML = `
-        <div class="class-box skeleton-card" style="height: 250px;"></div>
-        <div class="class-box skeleton-card" style="height: 250px;"></div>
-        <div class="class-box skeleton-card" style="height: 250px;"></div>
-    `;
-}
-
+// Function to render classes
 async function renderClasses() {
     showSkeletonLoader(); // Assuming this shows a loading indicator
 
     try {
-        // Fetch classes from the backend
-        const user = JSON.parse(localStorage.getItem("user")); // if stored as object
+        const user = JSON.parse(localStorage.getItem("user")); // Retrieve user data from localStorage
         const username = user?.USERNAME;
 
         const response = await fetch(`http://localhost:3000/classes?username=${username}`);
@@ -255,7 +261,7 @@ async function renderClasses() {
         }
 
         // Loop through the fetched classes and display them
-        classes.forEach((cls, index) => {
+        classes.forEach((cls) => {
             const classBox = document.createElement('div');
             classBox.classList.add('class-box');
             classBox.innerHTML = `
@@ -264,7 +270,7 @@ async function renderClasses() {
                     <p>Section: ${cls.SECTION || "N/A"}</p>
                     <p>Teacher: ${cls.NAME || "N/A"}</p>
                     
-                    <button class="delete-btn" onclick="deleteClass(${index}, event)">Delete</button>
+                    <button class="delete-btn" onclick="event.stopPropagation(); deleteClass('${cls.CLASS_CODE}')">Delete</button>
                 </section>
                 <section class="class-actions"></section>
             `;
@@ -281,6 +287,25 @@ async function renderClasses() {
         const container = document.getElementById('classContainer');
         container.innerHTML = '<p class="error-message">Failed to load classes. Please try again later.</p>';
     }
+}
+
+
+// Loading States
+function showLoading() {
+    document.getElementById('loadingOverlay').style.display = 'flex';
+}
+
+function hideLoading() {
+    document.getElementById('loadingOverlay').style.display = 'none';
+}
+
+function showSkeletonLoader() {
+    const container = document.getElementById('classContainer');
+    container.innerHTML = `
+        <div class="class-box skeleton-card" style="height: 250px;"></div>
+        <div class="class-box skeleton-card" style="height: 250px;"></div>
+        <div class="class-box skeleton-card" style="height: 250px;"></div>
+    `;
 }
 
 function updateActiveCourses() {

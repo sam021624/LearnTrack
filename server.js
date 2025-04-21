@@ -249,6 +249,28 @@ app.get("/section-count", async (req, res) => {
     }
 });
 
+app.delete('/delete-class/:classCode', async (req, res) => {
+    const { classCode } = req.params;
+    console.log("Attempting to delete class with CLASS_CODE:", classCode);
+
+    const database = client.db(dbName);
+    const collection = database.collection("LT_Classes");
+
+    try {
+        const result = await collection.deleteOne({ CLASS_CODE: classCode });
+
+        if (result.deletedCount === 1) {
+            res.status(200).json({ message: `Class with CLASS_CODE ${classCode} deleted successfully.` });
+        } else {
+            res.status(404).json({ message: `No class found with CLASS_CODE ${classCode}` });
+        }
+    } catch (err) {
+        console.error("Error during deletion:", err);
+        res.status(500).json({ message: 'Error deleting class: ' + err.message });
+    }
+});
+
+
 //STUDENT FUNCTIONALITIES
 app.get("/student-classes", async (req, res) => {
     try {
