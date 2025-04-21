@@ -170,6 +170,28 @@ app.get("/classes", async (req, res) => {
     }
 });
 
+app.get("/active-courses", async (req, res) => {
+    try {
+        const username = req.query.username;
+
+        if (!username) {
+            return res.status(400).json({ message: "Username is required" });
+        }
+
+        const database = client.db(dbName);
+        const collection = database.collection("LT_Classes");
+
+        // Assuming "STATUS" field denotes whether a course is active
+        const activeCount = await collection.countDocuments({
+            USERNAME: username,
+        });
+
+        res.json({ activeCourses: activeCount });
+    } catch (err) {
+        console.error("Error fetching active course count:", err);
+        res.status(500).json({ message: "Failed to fetch active course count" });
+    }
+});
 
 // --- START SERVER AND CONNECT DB ---
 client.connect()

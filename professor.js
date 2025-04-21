@@ -83,6 +83,8 @@ document.addEventListener('DOMContentLoaded', function () {
     // Load initial data
     renderClasses();
 
+    updateActiveCourses();
+
     // Set up modal button
     document.querySelector('.modal-btn-create').addEventListener('click', createClass);
 
@@ -235,8 +237,6 @@ async function renderClasses() {
         const user = JSON.parse(localStorage.getItem("user")); // if stored as object
         const username = user?.USERNAME;
 
-        console.log("🔍 Fetching for username:", username);
-
         const response = await fetch(`http://localhost:3000/classes?username=${username}`)
         if (!response.ok) {
             throw new Error('Failed to fetch classes');
@@ -272,6 +272,27 @@ async function renderClasses() {
         const container = document.getElementById('classContainer');
         container.innerHTML = '<p class="error-message">Failed to load classes. Please try again later.</p>';
     }
+}
+
+function updateActiveCourses() {
+    const user = JSON.parse(localStorage.getItem("user")); // if stored as object
+    const username = user?.USERNAME;
+
+    fetch(`http://localhost:3000/active-courses?username=${username}`) // Replace with your actual endpoint
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+            return response.json();
+        })
+        .then(data => {
+            // Assuming the response has a key 'activeCourses'
+            const count = data.activeCourses || 0;
+            document.getElementById('active-course-count').textContent = count;
+        })
+        .catch(error => {
+            console.error('Error fetching active courses:', error);
+        });
 }
 
 // Enhanced Class Page Functions
