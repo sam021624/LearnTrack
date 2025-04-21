@@ -56,9 +56,6 @@ const sampleStudents = [
     { name: "Xander Richardson", image: "https://i.pravatar.cc/150?img=50" }
 ];
 
-// Test with sample images
-updateStudentAvatars(sampleStudents);
-
 // ===== CORE FUNCTIONS ===== //
 
 // Initialize the page
@@ -242,7 +239,7 @@ async function renderClasses() {
         const user = JSON.parse(localStorage.getItem("user")); // if stored as object
         const username = user?.USERNAME;
 
-        const response = await fetch(`http://localhost:3000/classes?username=${username}`)
+        const response = await fetch(`http://localhost:3000/classes?username=${username}`);
         if (!response.ok) {
             throw new Error('Failed to fetch classes');
         }
@@ -262,14 +259,21 @@ async function renderClasses() {
             const classBox = document.createElement('div');
             classBox.classList.add('class-box');
             classBox.innerHTML = `
-                <section class="class-info" onclick="openClassPage(${JSON.stringify(cls).replace(/"/g, '&quot;')})">
+                <section class="class-info">
                     <h3>${cls.CLASS_NAME}</h3> <!-- Use correct property names from DB -->
                     <p>Section: ${cls.SECTION || "N/A"}</p>
                     <p>Teacher: ${cls.NAME || "N/A"}</p>
+                    
                     <button class="delete-btn" onclick="deleteClass(${index}, event)">Delete</button>
                 </section>
                 <section class="class-actions"></section>
             `;
+
+            // Pass the class object directly to openClassPage when the class card is clicked
+            classBox.querySelector('.class-info').addEventListener('click', () => {
+                openClassPage(cls); // Pass the full class object to openClassPage
+            });
+
             container.appendChild(classBox);
         });
     } catch (error) {
@@ -324,13 +328,12 @@ function updateSectionCount() {
 // Enhanced Class Page Functions
 function openClassPage(classData) {
     // Update class info
-    document.getElementById('classNameDisplay').textContent = classData.className;
-    document.getElementById('sectionDisplay').textContent = classData.section || 'N/A';
-    document.getElementById('professorDisplay').textContent = classData.teacherName || 'You';
+    document.getElementById('classNameDisplay').textContent = classData.CLASS_NAME;
+    document.getElementById('sectionDisplay').textContent = classData.SECTION || 'N/A';
+    document.getElementById('professorDisplay').textContent = classData.NAME || 'You';
 
     // Generate random class code
-    const classCode = generateClassCode();
-    document.getElementById('classCodeDisplay').textContent = classCode;
+    document.getElementById('classCodeDisplay').textContent = classData.CLASS_CODE;
 
     // Show class page
     document.querySelectorAll('.content').forEach(content => {
@@ -345,7 +348,7 @@ function openClassPage(classData) {
 
     // Load initial data
     loadAnnouncements();
-    updateStudentAvatars(sampleStudents); // Use the sample data
+    updateStudentAvatars(classData.STUDENTS || []); // Use the sample data
 }
 
 // Add window resize listener
@@ -359,32 +362,46 @@ window.addEventListener('resize', function () {
     }
 });
 
-function updateStudentAvatars(students) {
-    const avatarsContainer = document.getElementById('studentAvatars');
-    const studentCount = document.querySelector('.student-count');
+function updateStudentAvatars(classId, students) {
+    // Check if 'students' is null, undefined, or not an array
+    if (!students || !Array.isArray(students)) {
+        console.warn(`Invalid students data for class with ID: ${classId}`);
+        return;
+    }
 
+    // Clear the avatars container to prevent leftover avatars from previous classes
+    const avatarsContainer = document.getElementById('studentAvatars');
+    avatarsContainer.innerHTML = '';  // Clear any previous avatars
+
+    // If no students are present in this class
+    if (students.length === 0) {
+        console.warn(`No students have joined the class with ID: ${classId}`);
+        // Show a default message or an empty state if no students are present
+        avatarsContainer.innerHTML = '<p>No students have joined yet.</p>';
+        return;
+    }
+
+    const studentCount = document.querySelector('.student-count');
     studentCount.textContent = `(${students.length})`;
 
     let avatarsHTML = '';
-    const maxAvatars = 20; // Limit the number of avatars to 13
+    const maxAvatars = 20;
 
-    // Display student avatars
+    // Loop through and display avatars for the students of the current class
     students.slice(0, maxAvatars).forEach(student => {
         avatarsHTML += `
-            <div class="student-avatar" title="${student.name}">
-                <img src="${student.image || 'default-avatar.png'}" alt="${student.name}">
+            <div class="student-avatar" title="${student.NAME}">
+                <img src="default-avatar.png" alt="${student.NAME}">
             </div>
         `;
     });
 
     // Show "+X" counter if there are more students
     if (students.length > maxAvatars) {
-        avatarsHTML += `
-            <div class="more-students">+${students.length - maxAvatars}</div>
-        `;
+        avatarsHTML += `<div class="more-students">+${students.length - maxAvatars}</div>`;
     }
 
-    // Always keep the "Add Students" button
+    // Add "Add Student" button
     avatarsHTML += `
         <div class="empty-avatar" onclick="showAddStudents()">
             <i class="fas fa-user-plus"></i>
@@ -393,6 +410,7 @@ function updateStudentAvatars(students) {
 
     avatarsContainer.innerHTML = avatarsHTML;
 }
+
 
 function getAvatarInitials(name) {
     return name.split(' ').map(part => part[0]).join('').toUpperCase();
