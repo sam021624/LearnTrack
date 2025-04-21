@@ -73,7 +73,7 @@ document.addEventListener('DOMContentLoaded', function () {
         document.getElementById('userEmail').textContent = user.EMAIL;
         document.getElementById('userEmailDisplay').textContent = user.EMAIL;
 
-        userName = user.FULL_NAME;
+        userName = user.USERNAME;
         userEmail = user.EMAIL;
     }
 
@@ -232,7 +232,12 @@ async function renderClasses() {
 
     try {
         // Fetch classes from the backend
-        const response = await fetch('http://localhost:3000/classes');
+        const user = JSON.parse(localStorage.getItem("user")); // if stored as object
+        const username = user?.USERNAME;
+
+        console.log("🔍 Fetching for username:", username);
+
+        const response = await fetch(`http://localhost:3000/classes?username=${username}`)
         if (!response.ok) {
             throw new Error('Failed to fetch classes');
         }

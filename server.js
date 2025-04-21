@@ -71,6 +71,7 @@ app.post("/login", async (req, res) => {
                 success: true, message: "Login successful.", role: user.ROLES, user: {
                     FULL_NAME: user.FULL_NAME,
                     EMAIL: user.EMAIL,
+                    USERNAME: user.USERNAME
                 }
             });
         } else {
@@ -149,19 +150,26 @@ app.post("/create-class", async (req, res) => {
     }
 });
 
-// server.js or routes file
-app.get('/classes', async (req, res) => {
+app.get("/classes", async (req, res) => {
     try {
-        const database = client.db(dbName);
-        const collection = database.collection('LT_Classes');
+        const username = req.query.username;
 
-        const classes = await collection.find().toArray();  // Fetch all classes from the collection
-        res.json(classes);  // Send the classes as a JSON response
+        if (!username) {
+            return res.status(400).json({ message: "Username is required" });
+        }
+
+        const database = client.db(dbName);
+        const collection = database.collection("LT_Classes");
+
+        const classes = await collection.find({ USERNAME: username }).toArray();
+
+        res.json(classes);
     } catch (err) {
-        console.error('Error fetching classes:', err);
-        res.status(500).json({ message: 'Failed to fetch classes' });
+        console.error("Error fetching classes:", err);
+        res.status(500).json({ message: "Failed to fetch classes" });
     }
 });
+
 
 // --- START SERVER AND CONNECT DB ---
 client.connect()
