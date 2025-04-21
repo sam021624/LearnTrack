@@ -12,22 +12,18 @@ body, html {
   overflow: auto;
 }
 
+
 /* Sidebar styling */
 .sidebar {
-  width: 250px; /* Adjust this value based on your sidebar width */
+  height: 100vh;
+  width: 250px;
   position: fixed;
   top: 0;
   left: 0;
-  height: 100%;
-  background-color: #092235; /* Dark blue color */
-  z-index: 100; /* Ensure it stays above other elements */
+  background-color: #092235;
   padding-top: 10px;
   color: white;
-  transition: width 0.3s ease, transform 0.3s ease; /* Smooth transition for toggling */
-}
-
-.sidebar.hidden {
-  transform: translateX(-100%); /* Hide the sidebar */
+  transition: width 0.3s ease;
 }
 
 /* Sidebar links - only direct children of sidebar */
@@ -251,11 +247,6 @@ body, html {
   margin-left: 250px;
   margin-top: 60px; /* Height of navbar */
   padding-top: 60px; /* Height of header */
-  transition: margin-left 0.3s ease; /* Smooth transition for responsiveness */
-}
-
-.sidebar.hidden ~ .content {
-  margin-left: 0; /* Remove the left margin when the sidebar is hidden */
 }
 
 /* Show dashboard by default */
@@ -263,85 +254,40 @@ body, html {
   display: block;
 }
 
-/* Navbar styling */
-.navbar {
-    position: fixed;
-    top: 0;
-    left: 250px; /* Offset for the sidebar width */
-    width: 250;
-    height: 60px;
-    background-color:white;
-    display: flex;
-    align-items: center;
-    justify-content: space-between; /* Spread items to the corners */
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    z-index: 99; /* Ensure it stays above other elements */
-    transition: left 0.3s ease, width 0.3s ease; /* Smooth transition for responsiveness */
-    padding: 0 20px; /* Equal padding on both sides */
-}
 
-/* Adjust navbar when the sidebar is hidden */
-.sidebar.hidden + .navbar {
-    left: 0; /* Move navbar to the left edge */
-    width: 100%; /* Make the navbar span the full width */
-}
-
-/* Responsive adjustments for navbar */
-@media (max-width: 768px) {
-    .navbar {
-        left: 60px; /* Adjust for smaller sidebar width */
-        width: calc(100% - 60px); /* Adjust width dynamically */
-    }
-
-    .sidebar.hidden + .navbar {
-        left: 0; /* Move navbar to the left edge */
-        width: 100%; /* Make the navbar span the full width */
-    }
-}
-
-/* Join Class Button */
 .join-class-btn {
-    position: fixed; /* Fix the position relative to the viewport */
-    top: 15px; /* Adjust the vertical position */
-    right: 70px; /* Fixed distance from the right edge */
-    font-size: 19px;
-    background-color: white;
-    color: black;
-    border: none;
-    border-radius: 50%;
-    width: 40px;
-    height: 40px;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 101; /* Ensure it stays above other elements */
-    transition: all 0.3s ease;
-    margin-bottom: 10px; /* Add bottom margin to align with fullscreen button */
+  background-color: #4285f4;
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 15px;
+  transition: all 0.3s;
+  margin-left: auto;
+}
+
+.navbar {
+  position: fixed;
+  top: 0;
+  left: 250px;
+  right: 0;
+  height: 60px;
+  background-color: white;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+  display: flex;
+  align-items: center;
+  padding: 0 20px;
+  z-index: 90; /* Higher than header */
 }
 
 .join-class-btn:hover {
-    background-color: lightgray;
-    transform: scale(1.1);
-}
-
-/* Fullscreen Button */
-.fullscreen-btn {
-    position: fixed; /* Fix the position relative to the viewport */
-    top: 20px; /* Adjust the vertical position */
-    right: 20px; /* Fixed distance from the right edge */
-    background: none;
-    border: none;
-    cursor: pointer;
-    font-size: 1.5rem;
-    color: #333;
-    z-index: 101; /* Ensure it stays above other elements */
-    transition: color 0.3s ease;
-}
-
-.fullscreen-btn:hover {
-    color: #007bff;
-    transform: scale(1.1);
+  background-color: #3367d6;
+  transform: scale(1.1);
 }
 
 /* Modal styles */
@@ -430,55 +376,33 @@ body, html {
 
 /* Dashboard Contents */
 header {
-    position: fixed;
-    top: 60px; /* Adjust for navbar height */
-    left: 250px; /* Align with the sidebar width */
-    width: calc(100% - 250px); /* Adjust width dynamically */
-    background-color: white;
-    z-index: 80;
-    border-top: 1px solid #ddd;
-    border-bottom: 1px solid #ddd;
-    padding: 15px 20px;
-    transition: left 0.3s ease, width 0.3s ease; /* Smooth transition for responsiveness */
+  position: fixed;
+  top: 60px; /* Height of the navbar */
+  left: 250px; /* Width of the sidebar */
+  right: 0;
+  background-color: white;
+  z-index: 80;
+  border-top: 2px solid var(--three);
+  border-bottom: 2px solid var(--three);
+  padding: 15px 20px;
+  margin-bottom: 0; /* Remove previous margin */
 }
 
-/* Adjust header when the sidebar is hidden */
-.sidebar.hidden ~ header {
-    left: 0; /* Move the header to the left edge */
-    width: 100%; /* Make the header span the full width */
-}
-
-/* Header container styling */
 .header-container {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 5px;
+  display: flex;
+  flex-direction: column;
 }
 
 .header-h2 {
-    font-size: 16px;
-    color: #092235;
-    margin: 0;
+  color: #092235;
+  margin: 0;
+  font-size: 1.2rem;
 }
 
 header h1 {
-    font-size: 1.8rem;
-    color: black;
-    margin: 0;
-}
-
-/* Responsive adjustments for all headers */
-@media (max-width: 768px) {
-    header {
-        left: 60px; /* Adjust for smaller sidebar width */
-        width: calc(100% - 60px); /* Adjust width dynamically */
-    }
-
-    .sidebar.hidden ~ header {
-        left: 0; /* Move the header to the left edge */
-        width: 100%; /* Make the header span the full width */
-    }
+  margin: 5px 0 0 0;
+  font-size: 1.5rem;
+  color: #333;
 }
 
 /* Announcement Container Styles */
@@ -1202,6 +1126,7 @@ input:focus {
 .podium-spot:nth-child(2) { order: 2; } /* Gold (center) */
 .podium-spot:nth-child(3) { order: 3; } /* Bronze (right) */
 
+
 /* Rankings List Styling */
 .rankings-list {
   width: 100%;
@@ -1245,142 +1170,4 @@ input:focus {
   .rankings-list-container {
       max-height: none;
   }
-}
-
-/* Style for the fullscreen and burger menu buttons */
-.fullscreen-btn, .burger-menu-btn {
-    background: none;
-    border: none;
-    cursor: pointer;
-    font-size: 1.5rem;
-    margin-left: 10px;
-    color: #333;
-}
-
-.fullscreen-btn:hover, .burger-menu-btn:hover {
-    color: #007bff;
-}
-
-/* Hide sidebar when the hidden class is applied */
-.sidebar.hidden {
-    display: none;
-}
-
-/* Style for the burger menu button beside the sidebar */
-.burger-menu-btn {
-    position: fixed;
-    top: 15px; /* Decreased from 10px to 5px */
-    left: 250px; /* Adjust this value based on the sidebar width */
-    background: none;
-    border: none;
-    cursor: pointer;
-    font-size: 1.5rem;
-    color: #333;
-    z-index: 100; /* Ensure it stays above other elements */
-    transition: left 0.3s ease; /* Smooth transition when sidebar is toggled */
-}
-
-.burger-menu-btn:hover {
-    color: #007bff;
-}
-
-/* Adjust the button position when the sidebar is hidden */
-.sidebar.hidden + .burger-menu-btn {
-    left: 10px; /* Move the button to the left when the sidebar is hidden */
-}
-
-/* Adjust the navbar to account for the burger menu button */
-.navbar {
-    left: 60px; /* Adjust for the burger menu button width */
-    transition: left 0.3s ease;
-}
-
-/* Adjust navbar when the sidebar is hidden */
-.sidebar.hidden + .navbar {
-    left: 0;
-    width: 100%;
-}
-
-/* Adjust header and content when the sidebar is hidden */
-.sidebar.hidden ~ .content {
-    margin-left: 0; /* Remove the left margin when the sidebar is hidden */
-}
-
-.sidebar.hidden ~ header {
-    left: 0; /* Move the header to the left edge */
-    width: 100%; /* Make the header span the full width */
-}
-
-/* Style for the burger menu button */
-.burger-menu-btn {
-    position:fixed;
-    top: 15px;
-    left: 250px; /* Align with the sidebar width */
-    background: none;
-    border: none;
-    cursor: pointer;
-    font-size: 1.5rem;
-    color: #333;
-    z-index: 100; /* Ensure it stays above other elements */
-    transition: left 0.3s ease; /* Smooth transition when sidebar is toggled */
-}
-
-/* Adjust burger menu button when the sidebar is hidden */
-.sidebar.hidden + .burger-menu-btn {
-    left: 10px; /* Move the button to the left corner when the sidebar is hidden */
-}
-
-/* Adjust content when the sidebar is hidden */
-.sidebar.hidden ~ .content {
-    margin-left: 0; /* Remove the left margin when the sidebar is hidden */
-}
-
-/* Responsive adjustments for navbar, header, and content */
-@media (max-width: 768px) {
-    .navbar {
-        left: 60px; /* Adjust for smaller sidebar width */
-        width: calc(100% - 60px); /* Adjust width dynamically */
-    }
-
-    .sidebar.hidden + .navbar {
-        left: 0; /* Move navbar to the left edge */
-        width: 100%; /* Make the navbar span the full width */
-    }
-
-    header {
-        left: 60px; /* Adjust for smaller sidebar width */
-        width: calc(100% - 60px); /* Adjust width dynamically */
-    }
-
-    .sidebar.hidden ~ header {
-        left: 0; /* Move the header to the left edge */
-        width: 100%; /* Make the header span the full width */
-    }
-
-    .content {
-        margin-left: 60px; /* Adjust for smaller sidebar width */
-    }
-
-    .sidebar.hidden ~ .content {
-        margin-left: 0; /* Remove the left margin when the sidebar is hidden */
-    }
-}
-
-/* Style for the burger menu button */
-.burger-menu-btn {
-    position: fixed;
-    top: 15px;
-    left: 250px; /* Align with the sidebar width */
-    background: none;
-    border: none;
-    cursor: pointer;
-    font-size: 1.5rem;
-    color: #333;
-    z-index: 100; /* Ensure it stays above other elements */
-    transition: left 0.3s ease; /* Smooth transition when sidebar is toggled */
-}
-
-/* Adjust burger menu button when the sidebar is hidden */
-.sidebar.hidden + .burger-menu-btn {
-    left: 10px; /* Move the button to the left corner when the sidebar is hidden */
 }

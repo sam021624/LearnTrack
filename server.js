@@ -150,6 +150,35 @@ app.post("/create-class", async (req, res) => {
     }
 });
 
+app.post("/join-class/:classCode/students", async (req, res) => {
+    const { student } = req.body;
+    const classCode = req.params.classCode;
+
+    if (!student || !student.USERNAME || !student.NAME) {
+        return res.status(400).json({ message: "Missing student info." });
+    }
+
+    try {
+        const database = client.db(dbName);
+        const collection = database.collection("LT_Classes");
+
+        const result = await collection.updateOne(
+            { CLASS_CODE: classCode },
+            { $addToSet: { STUDENTS: student } }
+        );
+
+        if (result.matchedCount === 0) {
+            return res.status(404).json({ message: "Class not found." });
+        }
+
+        res.status(200).json({ message: "Student successfully joined the class." });
+    } catch (error) {
+        console.error("Error joining class:", error);
+        res.status(500).json({ message: "Server error while joining class." });
+    }
+});
+
+
 app.get("/classes", async (req, res) => {
     try {
         const username = req.query.username;
@@ -219,6 +248,8 @@ app.get("/section-count", async (req, res) => {
         res.status(500).json({ message: "Failed to fetch section count" });
     }
 });
+
+
 
 // --- START SERVER AND CONNECT DB ---
 client.connect()

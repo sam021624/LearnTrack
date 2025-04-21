@@ -21,6 +21,7 @@
                 </button>
 
                 <!-- Profile Button -->
+
                 <div class="profile-dropdown">
                     <button class="icon-button profile-button" aria-label="User Profile"
                         onclick="toggleProfileDropdown()">
@@ -39,7 +40,6 @@
                         </a>
                     </div>
                 </div>
-            </div>
         </section>
 
         <div class="user-profile">
@@ -47,8 +47,8 @@
                 <img src="Picture/gmailprofile.png" alt="User Profile">
             </div>
             <div class="user-info">
-                <h3 class="user-name" id="userName">Lance Kirby Bacang</h3>
-                <p class="user-email" id="userEmail">bacang.lancekirby@gmail.com</p>
+                <h3 class="user-name" id="userName">Login</h3>
+                <p class="user-email" id="userEmail">No Email Provided</p>
             </div>
         </div>
 
@@ -77,22 +77,10 @@
 
     <!-- Navigation Bar -->
     <nav class="navbar">
-        <button class="burger-menu-btn" onclick="toggleSidebar()" aria-label="Toggle Sidebar">
-            <i class="fas fa-bars"></i>
-        </button>
-        <!-- Other navbar content -->
         <button class="join-class-btn" onclick="openModal()">
             <i class="fas fa-plus"></i>
         </button>
-        <!-- Fullscreen Button -->
-        <button class="fullscreen-btn" onclick="toggleFullscreen()" aria-label="Fullscreen">
-            <i class="fas fa-expand"></i>
-        </button>
     </nav>
-
-    <div class="content">
-        <!-- Main content -->
-    </div>
 
     <div class="content" id="dashboard">
         <header>
@@ -101,11 +89,39 @@
                 <h1>Announcement</h1>
             </div>
         </header>
+
         <div class="dashboard-content" id="announcements-area">
             <!-- Announcement containers will be added here dynamically -->
         </div>
-    </div>
 
+        <!-- Template for announcements (hidden by default) -->
+        <template id="announcement-template">
+            <div class="announcements-container">
+                <!-- Blue header section -->
+                <div class="announcement-header">
+                    <div class="teacher-info-section">
+                        <img src="" alt="Teacher's Profile" class="teacher-avatar">
+                        <div class="teacher-details">
+                            <div class="teacher-email"></div>
+                            <div class="teacher-name"></div>
+                        </div>
+                    </div>
+                    <div class="course-info-section">
+                        <div class="subject-name"></div>
+                        <div class="class-schedule"></div>
+                    </div>
+                </div>
+
+                <!-- White content section -->
+                <div class="announcement-content">
+                    <div class="announcement-badge"></div>
+                    <h3 class="announcement-title"></h3>
+                    <div class="announcement-time"></div>
+                    <div class="announcement-text"></div>
+                </div>
+            </div>
+        </template>
+    </div>
     <div class="content" id="classes" style="display:none;">
         <header>
             <div class="header-container">
@@ -120,6 +136,7 @@
         </div>
     </div>
 
+    <!-- Add this new div for class-specific content -->
     <div class="content" id="class-specific" style="display:none;">
         <header>
             <div class="header-container">
@@ -145,6 +162,7 @@
                 <h1>Class Leaderboards</h1>
             </div>
         </header>
+
         <div class="rankings-container">
             <!-- Left: Class Selection -->
             <div class="class-sidebar">
@@ -154,10 +172,12 @@
                     <li data-class="CS102">CS102</li>
                 </ul>
             </div>
+
             <!-- Middle: Dynamically Generated Podium -->
             <div class="podium-container">
                 <div class="podium"></div>
             </div>
+
             <!-- Right: Rankings List -->
             <div class="rankings-list-container">
                 <div class="rankings-list"></div>

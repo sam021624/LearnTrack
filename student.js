@@ -1,3 +1,17 @@
+document.addEventListener('DOMContentLoaded', () => {
+    const userData = localStorage.getItem('user');
+
+    if (userData) {
+
+        const user = JSON.parse(userData)
+
+        document.getElementById('userName').textContent = user.FULL_NAME;
+        document.getElementById('userEmail').textContent = user.EMAIL;
+        document.getElementById('userEmailDisplay').textContent = user.EMAIL;
+    }
+});
+
+
 // Sample class data
 const userClasses = [
     { id: 'SE101', name: 'SE101-Software Engineering', section: 'SBIT-2C', professor: 'Rose Anne Taniente' },
@@ -38,15 +52,33 @@ const announcements = [
 
 // ===== CORE FUNCTIONS ===== //
 
-function showContent(sectionId) {
-    const contents = document.querySelectorAll('.content');
-    contents.forEach(content => {
-        if (content.id === sectionId) {
-            content.style.display = 'block';
-        } else {
-            content.style.display = 'none';
-        }
+function showContent(section, event) {
+    // Hide all content sections
+    document.querySelectorAll('.content').forEach(content => {
+        content.style.display = 'none';
     });
+
+    // Show selected section
+    document.getElementById(section).style.display = 'block';
+
+    // Update active link styling
+    document.querySelectorAll('.sidebar > a').forEach(link => {
+        link.classList.remove('active');
+    });
+
+    if (event && event.currentTarget) {
+        event.currentTarget.classList.add('active');
+    }
+
+    // Special handling for classes section
+    if (section === 'classes') {
+        setupClassCards();
+    }
+
+    // Special handling for dashboard
+    if (section === 'dashboard') {
+        loadAnnouncements();
+    }
 }
 
 function openModal() {
@@ -57,64 +89,6 @@ function openModal() {
 function closeModal() {
     const modal = document.getElementById('joinClassModal');
     modal.style.display = 'none'; // or modal.classList.remove('visible');
-}
-
-function joinClass() {
-    const classCode = document.querySelector('.modal-input').value.trim();
-    if (classCode.length < 5 || classCode.length > 8) { // Fixed invalid emoji in condition
-        alert('Please enter a valid class code (5-8 characters)');
-        return;
-    }
-
-    // Simulate joining a class
-    alert(`Successfully joined class with code: ${classCode}`); // Fixed missing backticks for template literal
-    closeModal();
-
-    // In a real app, you would make an API call here
-    // and update the UI with the new class
-}
-
-// Toggle fullscreen mode
-function toggleFullscreen() {
-    if (!document.fullscreenElement) {
-        document.documentElement.requestFullscreen();
-    } else {
-        if (document.exitFullscreen) {
-            document.exitFullscreen();
-        }
-    }
-}
-
-// Toggle sidebar visibility
-function toggleSidebar() {
-    const sidebar = document.querySelector('.sidebar');
-    const headers = document.querySelectorAll('header');
-    const contents = document.querySelectorAll('.content');
-    const burgerMenuBtn = document.querySelector('.burger-menu-btn');
-
-    // Toggle the hidden class on the sidebar
-    sidebar.classList.toggle('hidden');
-
-    // Adjust headers, content, and burger menu button dynamically
-    if (sidebar.classList.contains('hidden')) {
-        headers.forEach(header => {
-            header.style.left = '0';
-            header.style.width = '100%';
-        });
-        contents.forEach(content => {
-            content.style.marginLeft = '0';
-        });
-        burgerMenuBtn.style.left = '10px'; // Move burger menu button to the left
-    } else {
-        headers.forEach(header => {
-            header.style.left = '250px';
-            header.style.width = 'calc(100% - 250px)';
-        });
-        contents.forEach(content => {
-            content.style.marginLeft = '250px';
-        });
-        burgerMenuBtn.style.left = '250px'; // Align burger menu button with the sidebar
-    }
 }
 
 // ===== CLASS-RELATED FUNCTIONS ===== //
@@ -134,13 +108,60 @@ function populateClassLinks() {
         link.href = '#';
         link.className = 'class-link';
         link.dataset.class = cls.id;
-        link.innerHTML = `<i class="fas fa-book"></i> ${cls.name}`; // Fixed missing backticks for template literal
+        link.innerHTML = `<i class="fas fa-book"></i> ${cls.name}`;
         link.addEventListener('click', function (e) {
             e.preventDefault();
             redirectToClass(this.dataset.class);
         });
         container.appendChild(link);
     });
+}
+
+async function joinClass() {
+    const classCode = document.querySelector('.modal-input').value.trim();
+
+    const userData = localStorage.getItem('user');
+    let student = null;
+
+    if (userData) {
+        const user = JSON.parse(userData);
+        student = {
+            USERNAME: user.USERNAME,
+            NAME: user.FULL_NAME
+        };
+    }
+
+    if (!student || !student.USERNAME || !student.NAME) {
+        alert("Missing student information.");
+        return;
+    }
+
+    if (classCode.length < 5 || classCode.length > 8) {
+        alert('Please enter a valid class code (5-8 characters)');
+        return;
+    }
+
+    try {
+        const response = await fetch(`http://localhost:3000/join-class/${classCode}/students`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ student })
+        });
+
+        if (!response.ok) {
+            throw new Error(`Error: ${response.statusText}`);
+        }
+
+        const data = await response.json();
+
+        alert("Successfully joined the class!");
+
+    } catch (error) {
+        console.error('Error joining class:', error);
+        alert('An error occurred while joining the class.');
+    }
 }
 
 function setupClassCards() {
@@ -313,7 +334,7 @@ function createAnnouncement(announcementData) {
 
     // Fill in the data
     clone.querySelector('.teacher-avatar').src = announcementData.teacherAvatar;
-    clone.querySelector('.teacher-avatar').alt = `${announcementData.teacherName}'s profile`; // Fixed missing backticks for template literal
+    clone.querySelector('.teacher-avatar').alt = `${announcementData.teacherName}'s profile`;
     clone.querySelector('.teacher-email').textContent = announcementData.teacherEmail;
     clone.querySelector('.teacher-name').textContent = announcementData.teacherName;
     clone.querySelector('.subject-name').textContent = announcementData.subject;
@@ -359,17 +380,6 @@ function signOut() {
 // ===== INITIALIZATION ===== //
 
 document.addEventListener('DOMContentLoaded', function () {
-    const userData = localStorage.getItem('user');
-
-    if (userData) {
-
-        const user = JSON.parse(userData)
-
-        document.getElementById('userName').textContent = user.FULL_NAME;
-        document.getElementById('userEmail').textContent = user.EMAIL;
-        document.getElementById('userEmailDisplay').textContent = user.EMAIL;
-    }
-
     // Initialize UI
     showContent('dashboard');
     loadAnnouncements();
@@ -379,7 +389,8 @@ document.addEventListener('DOMContentLoaded', function () {
     setupClassLinks();
 
     // Set up modal button
-    document.querySelector('.modal-btn-join').addEventListener('click', joinClass);
+    document.querySelector('.modal-btn-join').addEventListener('click', async () => joinClass());
+
 
     // Close dropdowns when clicking outside
     document.addEventListener('click', function (event) {
@@ -483,7 +494,7 @@ function updatePodium(topStudents) {
 
     podiumOrder.forEach((item) => {
         const spot = document.createElement('div');
-        spot.className = `podium-spot ${item.type}`; // Fixed missing backticks for template literal
+        spot.className = `podium-spot ${item.type}`;
         spot.style.height = item.height;
         spot.innerHTML = `
         <div class="medal">${item.medal}</div>
@@ -502,6 +513,7 @@ function updatePodium(topStudents) {
     });
 }
 
+// Update Rankings List
 function updateRankingsList(data) {
     const listContainer = document.querySelector('.rankings-list');
     listContainer.innerHTML = `
@@ -514,7 +526,7 @@ function updateRankingsList(data) {
 
     data.forEach((student, index) => {
         const row = document.createElement('div');
-        row.className = `student-row ${student.yourRank ? 'current-user' : ''}`; // Fixed missing backticks for template literal
+        row.className = `student-row ${student.yourRank ? 'current-user' : ''}`;
         row.innerHTML = `
             <span class="rank">${index + 1}</span>
             <span class="name">${student.name}</span>
@@ -530,7 +542,6 @@ document.addEventListener('DOMContentLoaded', initRankings);
 function signOut() {
     // Clear any session or local storage data (if applicable)
     alert("You have been signed out.");
-    localStorage.clear();
     // Redirect to the login page
     window.location.href = "register.html"; // Replace with the actual login page URL
 }
