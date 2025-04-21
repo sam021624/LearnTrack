@@ -83,7 +83,9 @@ document.addEventListener('DOMContentLoaded', function () {
     // Load initial data
     renderClasses();
 
+    //Dashboard
     updateActiveCourses();
+    updateSectionCount();
 
     // Set up modal button
     document.querySelector('.modal-btn-create').addEventListener('click', createClass);
@@ -139,6 +141,7 @@ function showContent(section, event) {
 
         if (section === 'classes') {
             renderClasses();
+
         }
     }, 500);
 }
@@ -197,6 +200,8 @@ function createClass() {
         localStorage.setItem('classes', JSON.stringify(savedClasses));
 
         renderClasses();
+        updateActiveCourses();
+        updateSectionCount();
         closeModal();
         hideLoading();
     }, 800);
@@ -292,6 +297,27 @@ function updateActiveCourses() {
         })
         .catch(error => {
             console.error('Error fetching active courses:', error);
+        });
+}
+
+function updateSectionCount() {
+    const user = JSON.parse(localStorage.getItem("user")); // if stored as object
+    const username = user?.USERNAME;
+
+    fetch(`http://localhost:3000/section-count?username=${username}`) // Replace with your actual endpoint
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+            return response.json();
+        })
+        .then(data => {
+            // Assuming the response has a key 'activeCourses'
+            const count = data.sectionsHandled || 0;
+            document.getElementById('section-count').textContent = count;
+        })
+        .catch(error => {
+            console.error('Error fetching section count:', error);
         });
 }
 

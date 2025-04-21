@@ -193,6 +193,33 @@ app.get("/active-courses", async (req, res) => {
     }
 });
 
+app.get("/section-count", async (req, res) => {
+    try {
+        const username = req.query.username;
+
+        if (!username) {
+            return res.status(400).json({ message: "Username is required" });
+        }
+
+        const database = client.db(dbName);
+        const collection = database.collection("LT_Classes");
+
+        const results = await collection.aggregate([
+            { $match: { USERNAME: username } },
+            { $group: { _id: "$SECTION" } },
+            { $count: "uniqueSections" }
+        ]).toArray();
+
+        // Properly read the count from the aggregation result
+        const sectionCount = results.length > 0 ? results[0].uniqueSections : 0;
+
+        res.json({ sectionsHandled: sectionCount });
+    } catch (err) {
+        console.error("Error fetching section count:", err);
+        res.status(500).json({ message: "Failed to fetch section count" });
+    }
+});
+
 // --- START SERVER AND CONNECT DB ---
 client.connect()
     .then(() => {
