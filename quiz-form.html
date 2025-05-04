@@ -1,0 +1,559 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Create Quiz | Learn Track</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  <style>
+    /* Quiz-specific styles */
+    .quiz-form-container {
+      max-width: 800px;
+      margin: 20px auto;
+      padding: 20px;
+      background: white;
+      border-radius: 8px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+    
+    .form-group {
+      margin-bottom: 20px;
+    }
+    
+    .form-label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: 500;
+      color: #092235;
+    }
+    
+    .form-input {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      font-size: 16px;
+    }
+    
+    .form-textarea {
+      width: 100%;
+      min-height: 100px;
+      padding: 10px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      resize: vertical;
+    }
+    
+    .question-container {
+      background: #f9f9f9;
+      border-radius: 8px;
+      padding: 15px;
+      margin-bottom: 20px;
+      border-left: 4px solid #4285f4;
+    }
+    
+    .question-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+    
+    .question-type-selector {
+      margin-bottom: 15px;
+    }
+    
+    .option-container {
+      display: flex;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+    
+    .option-input {
+      flex-grow: 1;
+      margin-right: 10px;
+    }
+    
+    .correct-answer-checkbox {
+      margin-right: 10px;
+    }
+    
+    .add-option-btn {
+      background: #4285f4;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      padding: 5px 10px;
+      cursor: pointer;
+      margin-top: 5px;
+    }
+    
+    .add-question-btn {
+      background: #34a853;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      padding: 10px 15px;
+      cursor: pointer;
+      margin-bottom: 20px;
+    }
+    
+    .remove-question-btn {
+      background: #ea4335;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      padding: 5px 10px;
+      cursor: pointer;
+    }
+    
+    .form-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+      margin-top: 20px;
+    }
+    
+    .points-input {
+      width: 80px;
+    }
+    
+    .time-limit-container {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    
+    .question-points {
+      width: 60px;
+    }
+    
+    /* Question type indicators */
+    .question-type-label {
+      display: inline-block;
+      padding: 3px 8px;
+      border-radius: 12px;
+      font-size: 12px;
+      font-weight: bold;
+      background: #f1f1f1;
+      color: #555;
+    }
+    
+    .multiple-choice-label { background: #e3f2fd; color: #1976d2; }
+    .true-false-label { background: #e8f5e9; color: #388e3c; }
+    .short-answer-label { background: #fff3e0; color: #e65100; }
+  </style>
+</head>
+<body>
+  <div class="sidebar">
+    <!-- Reuse your existing sidebar structure -->
+    <section class="sidebar-header">
+      <img src="Picture/logo.png" alt="LearnTrack Logo">
+      <!-- ... rest of your sidebar ... -->
+    </section>
+  </div>
+
+  <nav class="navbar">
+    <button class="back-btn" onclick="redirectToClassPage()">
+      <i class="fas fa-arrow-left"></i> Back
+    </button>
+  </nav>
+
+  <div class="content">
+    <header class="content-header">
+      <div class="header-container">
+        <h2 class="header-h2">Workclass</h2>
+        <h1>Create Quiz</h1>
+      </div>
+    </header>
+
+    <div class="content-body">
+      <div class="quiz-form-container">
+        <form id="quizForm">
+          <div class="form-group">
+            <label class="form-label" for="quizTitle">Quiz Title</label>
+            <input type="text" id="quizTitle" class="form-input" placeholder="Quiz title" required>
+          </div>
+          
+          <div class="form-group">
+            <label class="form-label" for="quizInstructions">Instructions</label>
+            <textarea id="quizInstructions" class="form-textarea" placeholder="Provide instructions for this quiz..."></textarea>
+          </div>
+          
+          <div class="form-group">
+            <label class="form-label">Time Limit</label>
+            <div class="time-limit-container">
+              <input type="number" id="timeLimit" class="form-input" min="0" placeholder="Minutes">
+              <span>minutes (0 for no limit)</span>
+            </div>
+          </div>
+          
+          <div class="form-group">
+            <label class="form-label">Quiz Availability</label>
+            <div style="display: flex; gap: 20px; margin-bottom: 10px;">
+              <div>
+                <label>Start Date/Time</label>
+                <input type="datetime-local" id="startDateTime" class="form-input">
+              </div>
+              <div>
+                <label>End Date/Time</label>
+                <input type="datetime-local" id="endDateTime" class="form-input">
+              </div>
+            </div>
+          </div>
+          
+          <div class="form-group">
+            <label class="form-label">Questions</label>
+            <div id="questionsContainer">
+              <!-- Questions will be added here dynamically -->
+            </div>
+            <button type="button" class="add-question-btn" onclick="addQuestion()">
+              <i class="fas fa-plus"></i> Add Question
+            </button>
+          </div>
+          
+          <div class="form-actions">
+            <button type="button" class="modal-btn modal-btn-cancel" onclick="window.history.back()">Cancel</button>
+            <button type="button" class="modal-btn modal-btn-draft" onclick="saveAsDraft()">Save as Draft</button>
+            <button type="submit" class="modal-btn modal-btn-create">Create Quiz</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Question counter
+    let questionCounter = 0;
+    
+    // Question templates
+    const questionTemplates = {
+      multipleChoice: `\
+        <div class="question-container" data-question-id="{id}">\
+          <div class="question-header">\
+            <div>\
+              <span class="question-type-label multiple-choice-label">Multiple Choice</span>\
+              <span>Points: <input type="number" class="question-points" value="1" min="0"></span>\
+            </div>\
+            <button type="button" class="remove-question-btn" onclick="removeQuestion('{id}')">\
+              <i class="fas fa-trash"></i>\
+            </button>\
+          </div>\
+          <textarea class="form-textarea question-text" placeholder="Enter question text..." required></textarea>\
+          <div class="options-container" id="options-{id}">\
+            <!-- Options will be added here -->\
+          </div>\
+          <button type="button" class="add-option-btn" onclick="addOption('{id}')">\
+            <i class="fas fa-plus"></i> Add Option\
+          </button>\
+        </div>\
+      `,
+      trueFalse: `\
+        <div class="question-container" data-question-id="{id}">\
+          <div class="question-header">\
+            <div>\
+              <span class="question-type-label true-false-label">True/False</span>\
+              <span>Points: <input type="number" class="question-points" value="1" min="0"></span>\
+            </div>\
+            <button type="button" class="remove-question-btn" onclick="removeQuestion('{id}')">\
+              <i class="fas fa-trash"></i>\
+            </button>\
+          </div>\
+          <textarea class="form-textarea question-text" placeholder="Enter question text..." required></textarea>\
+          <div class="options-container" id="options-{id}">\
+            <div class="option-container">\
+              <input type="radio" name="correct-{id}" class="correct-answer-checkbox" checked>\
+              <div class="option-input">True</div>\
+            </div>\
+            <div class="option-container">\
+              <input type="radio" name="correct-{id}" class="correct-answer-checkbox">\
+              <div class="option-input">False</div>\
+            </div>\
+          </div>\
+        </div>\
+      `,
+      shortAnswer: `\
+        <div class="question-container" data-question-id="{id}">\
+          <div class="question-header">\
+            <div>\
+              <span class="question-type-label short-answer-label">Short Answer</span>\
+              <span>Points: <input type="number" class="question-points" value="1" min="0"></span>\
+            </div>\
+            <button type="button" class="remove-question-btn" onclick="removeQuestion('{id}')">\
+              <i class="fas fa-trash"></i>\
+            </button>\
+          </div>\
+          <textarea class="form-textarea question-text" placeholder="Enter question text..." required></textarea>\
+          <div style="margin-top: 10px;">\
+            <label>Sample Answer (optional):</label>\
+            <textarea class="form-textarea" placeholder="Enter sample answer..."></textarea>\
+          </div>\
+        </div>\
+      `
+    };
+  
+    // Initialize the form
+    document.addEventListener('DOMContentLoaded', function() {
+      const form = document.getElementById('quizForm');
+      form.onsubmit = createQuiz;
+      
+      // Set default dates
+      const now = new Date();
+      document.getElementById('startDateTime').value = now.toISOString().slice(0, 16);
+      
+      const endDate = new Date();
+      endDate.setDate(endDate.getDate() + 7);
+      document.getElementById('endDateTime').value = endDate.toISOString().slice(0, 16);
+      
+      // Add first question
+      addQuestion();
+    });
+  
+    // Add a new question
+    function addQuestion(type = 'multipleChoice') {
+      questionCounter++;
+      const questionId = `q${questionCounter}`;
+      const questionsContainer = document.getElementById('questionsContainer');
+      
+      let template = questionTemplates[type];
+      template = template.replace(/{id}/g, questionId);
+      
+      const questionDiv = document.createElement('div');
+      questionDiv.innerHTML = template;
+      questionsContainer.appendChild(questionDiv);
+      
+      // If multiple choice, add initial options
+      if (type === 'multipleChoice') {
+        addOption(questionId);
+        addOption(questionId);
+      }
+      
+      // Scroll to the new question
+      questionDiv.scrollIntoView({ behavior: 'smooth' });
+    }
+  
+    // Add option to multiple choice question
+    function addOption(questionId) {
+      const optionsContainer = document.getElementById(`options-${questionId}`);
+      const optionId = `opt-${questionId}-${optionsContainer.children.length + 1}`;
+      
+      const optionDiv = document.createElement('div');
+      optionDiv.className = 'option-container';
+      optionDiv.innerHTML = `\
+        <input type="radio" name="correct-${questionId}" class="correct-answer-checkbox">\
+        <input type="text" class="option-input form-input" placeholder="Enter option text..." required>\
+        <button type="button" class="remove-question-btn" onclick="this.parentElement.remove()">\
+          <i class="fas fa-times"></i>\
+        </button>\
+      `;
+      
+      optionsContainer.appendChild(optionDiv);
+    }
+  
+    // Remove question
+    function removeQuestion(questionId) {
+      const questionElement = document.querySelector(`[data-question-id="${questionId}"]`);
+      if (questionElement && confirm('Are you sure you want to remove this question?')) {
+        questionElement.remove();
+      }
+    }
+  
+    // Collect quiz data
+function collectQuizData() {
+  const title = document.getElementById('quizTitle').value.trim();
+  const instructions = document.getElementById('quizInstructions').value.trim();
+  const timeLimit = parseInt(document.getElementById('timeLimit').value) || 0;
+  const startDateTime = document.getElementById('startDateTime').value;
+  const endDateTime = document.getElementById('endDateTime').value;
+  let totalPoints = 0;
+  
+  if (!title) throw new Error('Quiz title is required');
+  
+  // Collect all questions
+  const questions = [];
+  const questionElements = document.querySelectorAll('.question-container');
+  
+  if (questionElements.length === 0) {
+    throw new Error('Please add at least one question');
+  }
+  
+  questionElements.forEach(questionEl => {
+    const questionText = questionEl.querySelector('.question-text').value.trim();
+    const points = parseInt(questionEl.querySelector('.question-points').value) || 1;
+    totalPoints += points;
+    
+    if (!questionText) {
+      throw new Error('All questions must have text');
+    }
+    
+    const typeLabel = questionEl.querySelector('.question-type-label').textContent;
+    let type, options = [], correctAnswer;
+    
+    if (typeLabel.includes('Multiple Choice')) {
+      type = 'multipleChoice';
+      const optionInputs = questionEl.querySelectorAll('.option-input');
+      const correctRadios = questionEl.querySelectorAll('.correct-answer-checkbox');
+      
+      optionInputs.forEach((input, index) => {
+        const optionText = input.value.trim();
+        if (optionText) {
+          options.push(optionText);
+          if (correctRadios[index].checked) {
+            correctAnswer = optionText;
+          }
+        }
+      });
+      
+      if (options.length < 2) throw new Error('Multiple choice questions need at least 2 options');
+      if (!correctAnswer) throw new Error('Please select a correct answer for each question');
+    } 
+    else if (typeLabel.includes('True/False')) {
+      type = 'trueFalse';
+      options = ['True', 'False'];
+      const selectedRadio = questionEl.querySelector('.correct-answer-checkbox:checked');
+      correctAnswer = selectedRadio ? selectedRadio.parentElement.querySelector('.option-input').textContent : null;
+      if (!correctAnswer) throw new Error('Please select a correct answer for True/False questions');
+    } 
+    else if (typeLabel.includes('Short Answer')) {
+      type = 'shortAnswer';
+      const sampleAnswer = questionEl.querySelector('textarea:nth-of-type(2)').value.trim();
+      correctAnswer = sampleAnswer;
+    }
+    
+    questions.push({
+      type,
+      text: questionText,
+      points,
+      options,
+      correctAnswer
+    });
+  });
+  
+  return {
+    title,
+    instructions,
+    timeLimit,
+    startDateTime,
+    endDateTime,
+    questions,
+    totalPoints
+  };
+}
+
+async function createQuiz(event) {
+  event.preventDefault();
+  
+  try {
+    const quizData = collectQuizData();
+    const classCode = localStorage.getItem('currentClassCode');
+    
+    if (!classCode) {
+      throw new Error('No class selected');
+    }
+
+    // Create workclass object
+    const workclass = {
+      id: Date.now(),
+      classCode: classCode,
+      title: quizData.title,
+      type: 'quiz',
+      instructions: quizData.instructions,
+      questions: quizData.questions,
+      timeLimit: quizData.timeLimit,
+      startDateTime: quizData.startDateTime,
+      endDateTime: quizData.endDateTime,
+      pointsPossible: quizData.totalPoints,
+      createdAt: new Date().toISOString(),
+      status: 'published'
+    };
+
+    const workclassData = {
+  CLASS_CODE: classCode,
+  TITLE: quizData.title,
+  TYPE: 'quiz',
+  INSTRUCTIONS: quizData.instructions,
+  QUESTIONS: quizData.questions,
+  TIMELIMIT: quizData.timeLimit,
+  STARTDATETIME: quizData.startDateTime,
+  ENDDATETIME: quizData.endDateTime,
+  POINTSPOSSIBLE: quizData.totalPoints,
+  CREATEDAT: new Date().toISOString(),
+  STATUS: 'published'
+};
+
+const response = await fetch('http://localhost:3000/create-workclass', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(workclassData)
+    });
+
+    // Save to workclasses
+    let workclasses = JSON.parse(localStorage.getItem('workclasses')) || [];
+    workclasses.push(workclass);
+    localStorage.setItem('workclasses', JSON.stringify(workclasses));
+
+    // Update class workclasses
+    let classes = JSON.parse(localStorage.getItem('classes')) || [];
+    const classIndex = classes.findIndex(c => c.CLASS_CODE === classCode);
+    if (classIndex !== -1) {
+      if (!classes[classIndex].workclasses) {
+        classes[classIndex].workclasses = [];
+      }
+      classes[classIndex].workclasses.push(workclass.id);
+      localStorage.setItem('classes', JSON.stringify(classes));
+    }
+
+    alert('Quiz created successfully!');
+    console.log(quizData);
+    // window.location.href = `professor.html?class=${classCode}`;
+    
+  } catch (error) {
+    alert('Error creating quiz: ' + error.message);
+  }
+}
+
+    // Save as draft
+    function saveAsDraft(event) {
+      event.preventDefault();
+      
+      try {
+        const quizData = collectQuizData();
+        const classCode = localStorage.getItem('currentClassCode');
+        
+        if (!classCode) {
+          throw new Error('No class selected');
+        }
+
+        // Create workclass object
+        const workclass = {
+          id: Date.now(),
+          classCode: classCode,
+          title: quizData.title,
+          type: 'quiz',
+          instructions: quizData.instructions,
+          questions: quizData.questions,
+          timeLimit: quizData.timeLimit,
+          startDateTime: quizData.startDateTime,
+          endDateTime: quizData.endDateTime,
+          pointsPossible: quizData.totalPoints,
+          createdAt: new Date().toISOString(),
+          status: 'draft'
+        };
+
+        // Save to workclasses
+        let workclasses = JSON.parse(localStorage.getItem('workclasses')) || [];
+        workclasses.push(workclass);
+        localStorage.setItem('workclasses', JSON.stringify(workclasses));
+
+        alert('Quiz saved as draft!');
+        window.location.href = `professor.html?class=${classCode}`;
+        
+      } catch (error) {
+        alert('Error saving quiz: ' + error.message);
+      }
+    }
+  </script>
+</body>
+</html>

@@ -2,207 +2,385 @@
 <html lang="en">
 
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Homepage</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <link rel="stylesheet" href="student.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, 1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Student Dashboard</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  <link rel="stylesheet" href="student.css">
 </head>
 
 <body>
-    <div class="sidebar">
-        <section class="sidebar-header">
-            <img src="Picture/logo.png" alt="LearnTrack Logo">
-            <div class="icon-buttons">
-                <!-- Notification Button -->
-                <button class="icon-button notification-button" aria-label="Notifications">
-                    <i class="fas fa-bell"></i>
-                    <span class="badge">2</span>
-                </button>
-
-                <!-- Profile Button -->
-
-                <div class="profile-dropdown">
-                    <button class="icon-button profile-button" aria-label="User Profile"
-                        onclick="toggleProfileDropdown()">
-                        <i class="fas fa-user"></i>
-                    </button>
-                    <div class="dropdown-content" id="profileDropdown">
-                        <div class="dropdown-header">
-                            <p>Signed in as</p>
-                            <p class="user-email-display" id="userEmailDisplay">bacang.lancekirby@gmail.com</p>
-                        </div>
-                        <a href="#" class="dropdown-item">
-                            <i class="fas fa-user-circle"></i> Profile
-                        </a>
-                        <a href="#" class="dropdown-item" onclick="signOut()">
-                            <i class="fas fa-sign-out-alt"></i> Sign out
-                        </a>
-                    </div>
-                </div>
-        </section>
-
-        <div class="user-profile">
-            <div class="profile-picture">
-                <img src="Picture/gmailprofile.png" alt="User Profile">
-            </div>
-            <div class="user-info">
-                <h3 class="user-name" id="userName">Login</h3>
-                <p class="user-email" id="userEmail">No Email Provided</p>
-            </div>
-        </div>
-
-        <a href="#" onclick="showContent('dashboard')">
-            <i class="fas fa-tachometer-alt"></i> Dashboard
-        </a>
-        <div class="classes-container">
-            <a href="#" class="classes-toggle" onclick="redirectToMyClassesSection(event)">
-                <i class="fas fa-chalkboard-teacher"></i> Courses
-                <i class="fas fa-chevron-down dropdown-icon"></i>
-            </a>
-            <div class="joined-classes">
-                <!-- Dynamically populated class links -->
-                <a href="#" class="class-link" data-class="SE101">
-                    <i class="fas fa-book"></i> SE101-Software Engineering
-                </a>
-                <a href="#" class="class-link" data-class="CS102">
-                    <i class="fas fa-book"></i> CS102-Data Structures
-                </a>
-            </div>
-        </div>
-        <a href="#" onclick="showContent('rankings')">
-            <i class="fas fa-trophy"></i> Rankings
-        </a>
-    </div>
-
-    <!-- Navigation Bar -->
-    <nav class="navbar">
-        <button class="join-class-btn" onclick="openModal()">
-            <i class="fas fa-plus"></i>
+  <div class="sidebar">
+    <section class="sidebar-header">
+      <img src="Picture/logo.png" alt="LearnTrack Logo">
+      <div class="icon-buttons">
+        <!-- Notification Button -->
+        <button class="icon-button notification-button" aria-label="Notifications">
+          <i class="fas fa-bell"></i>
+          <span class="badge">2</span>
         </button>
-    </nav>
 
-    <div class="content" id="dashboard">
-        <header>
-            <div class="header-container">
-                <h2 class="header-h2">Dashboard</h2>
-                <h1>Announcement</h1>
+        <!-- Profile Button -->
+        <div class="profile-dropdown">
+          <button class="icon-button profile-button" aria-label="User Profile" onclick="toggleProfileDropdown()">
+            <i class="fas fa-user"></i>
+          </button>
+          <div class="dropdown-content" id="profileDropdown">
+            <div class="dropdown-header">
+              <p>Signed in as</p>
+              <p class="user-email-display" id="userEmailDisplay">student@example.com</p>
             </div>
-        </header>
-
-        <div class="dashboard-content" id="announcements-area">
-            <!-- Announcement containers will be added here dynamically -->
+            <a href="#" class="dropdown-item" onclick="showSettings()">
+              <i class="fas fa-user-circle"></i> Profile
+            </a>
+            <a href="#" class="dropdown-item" onclick="signOut()">
+              <i class="fas fa-sign-out-alt"></i> Sign out
+            </a>
+          </div>
         </div>
+      </div>
+    </section>
 
-        <!-- Template for announcements (hidden by default) -->
-        <template id="announcement-template">
-            <div class="announcements-container">
-                <!-- Blue header section -->
-                <div class="announcement-header">
-                    <div class="teacher-info-section">
-                        <img src="" alt="Teacher's Profile" class="teacher-avatar">
-                        <div class="teacher-details">
-                            <div class="teacher-email"></div>
-                            <div class="teacher-name"></div>
-                        </div>
-                    </div>
-                    <div class="course-info-section">
-                        <div class="subject-name"></div>
-                        <div class="class-schedule"></div>
-                    </div>
-                </div>
-
-                <!-- White content section -->
-                <div class="announcement-content">
-                    <div class="announcement-badge"></div>
-                    <h3 class="announcement-title"></h3>
-                    <div class="announcement-time"></div>
-                    <div class="announcement-text"></div>
-                </div>
-            </div>
-        </template>
-    </div>
-    <div class="content" id="classes" style="display:none;">
-        <header>
-            <div class="header-container">
-                <h2 class="header-h2">Classes</h2>
-                <h1>Learning Management</h1>
-            </div>
-        </header>
-        <div class="classes-default-container">
-            <div class="class-cards-container">
-                <!-- Class cards will be added here dynamically -->
-            </div>
-        </div>
+    <div class="user-profile">
+      <div class="profile-picture">
+        <img src="Picture/default-student.png" alt="User Profile">
+      </div>
+      <div class="user-info">
+        <h3 class="user-name" id="userName">Student Name</h3>
+        <p class="user-email" id="userEmail">student@example.com</p>
+      </div>
     </div>
 
-    <!-- Add this new div for class-specific content -->
-    <div class="content" id="class-specific" style="display:none;">
-        <header>
-            <div class="header-container">
-                <h2 class="header-h2">Class Details</h2>
-                <h1>Class Content</h1>
-            </div>
-        </header>
-        <div class="class-header">
-            <button class="back-to-classes" onclick="showContent('classes')">
-                <i class="fas fa-arrow-left"></i> Back to Classes
-            </button>
-            <h2 id="class-title">Class Title</h2>
+    <a href="#" onclick="showContent('dashboard')">
+      <i class="fas fa-tachometer-alt"></i> Dashboard
+    </a>
+    <a href="#" onclick="showContent('classes')">
+      <i class="fas fa-book"></i> My Classes
+    </a>
+    <a href="#" onclick="showContent('grades')">
+      <i class="fas fa-graduation-cap"></i> Grades
+    </a>
+    <a href="#" onclick="showContent('rankings')">
+        <i class="fas fa-trophy"></i> Rankings
+      </a>
+  </div>
+
+  <!-- Navigation Bar -->
+  <nav class="navbar">
+    <button class="hamburger-btn" onclick="toggleSidebar()">
+      <i class="fas fa-bars"></i>
+    </button>
+
+    <!-- Join class button for students -->
+    <button class="join-class-btn" onclick="openJoinClassModal()">
+      <i class="fas fa-plus"></i>
+    </button>
+
+    <button class="fullscreen-btn" onclick="toggleFullscreen()">
+      <i class="fas fa-expand"></i>
+    </button>
+  </nav>
+
+  <div class="content" id="dashboard">
+    <header class="content-header">
+      <div class="header-container">
+        <h2 class="header-h2">Dashboard</h2>
+        <h1>My Courses</h1>
+      </div>
+    </header>
+
+    <div class="content-body">
+      <div class="dashboard-grid">
+        <div class="enrolled-courses">
+          <i class="fas fa-graduation-cap"></i>
+          <span id="course-count">0</span>
+          <span>Enrolled Courses</span>
         </div>
-        <div class="class-content">
-            <!-- Class content will be loaded here -->
+
+        <div class="active-courses">
+          <i class="fas fa-box-open"></i>
+          <span id="active-course-count">0</span>
+          <span>Active Courses</span>
         </div>
+
+        <div class="assignments-due">
+          <i class="fas fa-tasks"></i>
+          <span id="assignments-due-count">0</span>
+          <span>Assignments Due</span>
+        </div>
+
+        <div class="average-grade">
+          <i class="fas fa-chart-line"></i>
+          <span id="average-grade">0%</span>
+          <span>Average Grade</span>
+        </div>
+      </div>
     </div>
+  </div>
 
-    <div class="content" id="rankings" style="display:none;">
-        <header>
-            <div class="header-container">
-                <h2 class="header-h2">Rankings</h2>
-                <h1>Class Leaderboards</h1>
-            </div>
-        </header>
-
-        <div class="rankings-container">
-            <!-- Left: Class Selection -->
-            <div class="class-sidebar">
-                <h3>Your Classes</h3>
-                <ul class="class-list">
-                    <li class="active" data-class="SE101">SE101</li>
-                    <li data-class="CS102">CS102</li>
-                </ul>
-            </div>
-
-            <!-- Middle: Dynamically Generated Podium -->
-            <div class="podium-container">
-                <div class="podium"></div>
-            </div>
-
-            <!-- Right: Rankings List -->
-            <div class="rankings-list-container">
-                <div class="rankings-list"></div>
-            </div>
-        </div>
+  <div class="content" id="classes" style="display:none;">
+    <header class="content-header">
+      <div class="header-container">
+        <h2 class="header-h2">Courses</h2>
+        <h1>My Classes</h1>
+      </div>
+    </header>
+    
+    <div class="content-body">
+      <div id="classContainer">
+        <!-- Classes will be loaded here -->
+      </div>
     </div>
+  </div>
 
-    <!-- Join Class Modal -->
-    <div class="modal" id="joinClassModal">
-        <div class="modal-content">
-            <h3 class="modal-title">Join Class</h3>
-            <p>Ask your teacher for the class code, then enter it here.</p>
-            <input type="text" class="modal-input" placeholder="Class code">
-            <p>To sign in with a class code:</p>
-            <ul>
-                <li>Use an authorized account</li>
-                <li>Use a class code with 5-8 letters or numbers, and no spaces or symbols</li>
+  <div class="content" id="classPage" style="display: none;">
+    <header>
+      <div class="header-container">
+        <div class="class-header-nav">
+          <button class="back-btn" onclick="backToClasses()">
+            <i class="fas fa-arrow-left"></i> Back to Classes
+          </button>
+          <div>
+            <h2 class="header-h2" id="classPageCourse">Course</h2>
+            <h1 id="classPageClassroom">Classroom</h1>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <div class="class-page-container">
+      <div class="class-tabs">
+        <button class="tab-button active" onclick="openClassTab('announcements')">Announcements</button>
+        <button class="tab-button" onclick="openClassTab('workclasses')">Classwork</button>
+        <button class="tab-button" onclick="openClassTab('people')">People</button>
+      </div>
+
+      <div class="class-info-container">
+        <div class="class-meta">
+          <div>
+            <h1 id="classNameDisplay">Class Name</h1>
+            <h3 id="sectionDisplay">N/A</h3>
+            <h3 id="professorDisplay">N/A</h3>
+          </div>
+        </div>
+      </div>
+
+      <div class="announcements-feed" id="announcementsTab">
+        <div class="feed-header">
+          <h3><i class="fas fa-stream"></i> Class Feed</h3>
+          <div class="sort-options">
+            <span>Sort by:</span>
+            <select id="sortFeed">
+              <option value="newest">Newest First</option>
+              <option value="oldest">Oldest First</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="empty-state card" id="noAnnouncements">
+          <i class="fas fa-bullhorn"></i>
+          <h4>No announcements yet</h4>
+          <p>Your professor hasn't posted anything yet</p>
+        </div>
+
+        <div id="announcementsList" class="announcements-feed">
+          <!-- Announcements will be loaded here -->
+        </div>
+      </div>
+
+      <div class="workclasses-container" id="workclassesTab" style="display:none;">
+        <div class="tab-header">
+          <h3><i class="fas fa-briefcase"></i> Classwork</h3>
+        </div>
+        <div id="classWorkclassesContainer" class="workclass-grid"></div>
+      </div>
+
+      <div class="people-container" id="peopleTab" style="display:none;">
+        <div class="tab-header">
+          <h3><i class="fas fa-users"></i> People</h3>
+        </div>
+        <div id="peopleList">
+          <!-- People will be loaded here -->
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="content" id="grades" style="display:none;">
+    <header class="content-header">
+      <div class="header-container">
+        <h2 class="header-h2">Grades</h2>
+        <h1>My Grades</h1>
+      </div>
+    </header>
+    
+    <div class="content-body">
+      <div id="gradesContainer">
+        <!-- Grades will be loaded here -->
+      </div>
+    </div>
+  </div>
+
+  <div class="content" id="settings" style="display:none;">
+    <header class="content-header">
+      <div class="header-container">
+        <h2 class="header-h2">Settings</h2>
+        <h1>Account Settings</h1>
+      </div>
+    </header>
+    
+    <div class="content-body">
+    <div class="settings-container">
+      <!-- Settings Navigation -->
+      <div class="settings-nav">
+        <button class="settings-nav-btn active" onclick="switchSettingsTab('profile')">
+          <i class="fas fa-user"></i> Profile Settings
+        </button>
+        <button class="settings-nav-btn" onclick="switchSettingsTab('system')">
+          <i class="fas fa-cog"></i> System Settings
+        </button>
+        <button class="settings-nav-btn" onclick="switchSettingsTab('privacy')">
+          <i class="fas fa-shield-alt"></i> Privacy & Security
+        </button>
+      </div>
+  
+      <!-- Settings Content -->
+      <div class="settings-content">
+        <!-- Profile Settings -->
+        <div id="profileSettings" class="settings-tab active">
+          <h3>Profile Settings</h3>
+          <div class="settings-form">
+            <div class="form-group">
+              <label>Profile Picture</label>
+              <div class="profile-upload">
+                <img id="profilePreview" src="Picture/gmailprofile.png" alt="Profile">
+                <button class="secondary-btn" onclick="uploadProfilePicture()">Change Picture</button>
+              </div>
+            </div>
+            <div class="form-group">
+              <label>Full Name</label>
+              <input type="text" id="fullName" value="Lance Kirby Bacang">
+            </div>
+            <div class="form-group">
+              <label>Email</label>
+              <input type="email" id="email" value="bacang.lancekirby@gmail.com" disabled>
+            </div>
+          </div>
+        </div>
+  
+        <!-- System Settings -->
+        <div id="systemSettings" class="settings-tab">
+          <h3>System Settings</h3>
+          <div class="settings-form">
+            <div class="form-group">
+              <label>Language</label>
+              <select id="language">
+                <option value="en">English</option>
+                <option value="es">Spanish</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Theme</label>
+              <select id="theme">
+                <option value="light">Light</option>
+                <option value="dark">Dark</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Notifications</label>
+              <div class="toggle-switch">
+                <input type="checkbox" id="notifications" checked>
+                <label for="notifications">Enable Notifications</label>
+              </div>
+            </div>
+          </div>
+        </div>
+  
+        <!-- Privacy Settings -->
+        <div id="privacySettings" class="settings-tab">
+          <h3>Privacy & Security</h3>
+          <div class="settings-form">
+            <div class="form-group">
+              <label>Change Password</label>
+              <input type="password" placeholder="Current Password">
+              <input type="password" placeholder="New Password">
+              <input type="password" placeholder="Confirm New Password">
+              <button class="primary-btn">Update Password</button>
+            </div>
+            <div class="form-group">
+              <label>Two-Factor Authentication</label>
+              <div class="toggle-switch">
+                <input type="checkbox" id="twoFactor">
+                <label for="twoFactor">Enable 2FA</label>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    </div>
+  </div>
+
+  <div class="content" id="rankings" style="display:none;">
+    <header class="content-header">
+      <div class="header-container">
+        <h2 class="header-h2">Rankings</h2>
+        <h1>Class Leaderboards</h1>
+      </div>
+    </header>
+
+    <div class="content-body">
+      <div class="rankings-container">
+        <!-- Left: Subject Selection -->
+        <div class="class-sidebar">
+            <h3>Your Subjects</h3>
+            <ul class="class-list">
+                <li class="active" data-subject="Web Development">Web Development</li>
+                <li data-subject="Database Management">Database Management</li>
+                <li data-subject="Software Engineering">Software Engineering</li>
             </ul>
-            <div class="modal-actions">
-                <button class="modal-btn modal-btn-cancel" onclick="closeModal()">Cancel</button>
-                <button class="modal-btn modal-btn-join">Join</button>
-            </div>
         </div>
+
+        <!-- Middle: Dynamically Generated Podium -->
+        <div class="podium-container">
+            <div class="podium"></div>
+        </div>
+
+        <!-- Right: Rankings List -->
+        <div class="rankings-list-container">
+            <div class="rankings-list"></div>
+        </div>
+      </div>
     </div>
-    <script src="student.js" defer></script>
+  </div>
+
+  <!-- Join Class Modal -->
+  <div id="joinClassModal" class="modal">
+    <div class="modal-content">
+      <h2>Join a Class</h2>
+      <input type="text" class="modal-input" id="classCodeInput" placeholder="Enter Class Code" required>
+      <div class="modal-actions">
+        <button class="modal-btn modal-btn-cancel" onclick="closeModal()">Cancel</button>
+        <button class="modal-btn modal-btn-create" onclick="joinClass()">Join</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="modalOverlay" class="modal-overlay"></div>
+
+  <!-- Update hamburger button -->
+  <button class="hamburger-btn" onclick="toggleSidebar()">
+    <span class="bar"></span>
+    <span class="bar"></span>
+    <span class="bar"></span>
+  </button>
+
+  <script src="student.js" defer></script>
+
+  <!-- Loading Overlay -->
+  <div id="loadingOverlay" class="loading-overlay" style="display: none;">
+    <div class="loading-spinner"></div>
+  </div>
 </body>
 
 </html>

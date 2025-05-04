@@ -2,6 +2,7 @@ const express = require("express");
 const nodemailer = require("nodemailer");
 const cors = require("cors");
 const { MongoClient } = require("mongodb");
+const { ObjectId } = require('mongodb');
 
 const app = express();
 const PORT = 3000;
@@ -128,6 +129,96 @@ app.post("/verify-code", (req, res) => {
     }
 });
 
+// SENDING EMAIL TO NOTIFY THAT AN ACTIVITY IS DUE
+app.post("/send-email-due-soon", async (req, res) => {
+    const { workclassId, classCode } = req.body;
+
+    if (!workclassId || !classCode) {
+        return res.status(400).json({ error: "Missing required fields." });
+    }
+
+    let objectId;
+    try {
+        objectId = new ObjectId(workclassId);
+    } catch (e) {
+        console.error("Invalid ObjectId:", workclassId);
+        return res.status(400).json({ error: "Invalid workclassId format." });
+    }
+
+    try {
+        const db = client.db(dbName);
+
+        const workclassDoc = await db.collection("LT_Workclasses").findOne({
+            _id: objectId,
+            CLASS_CODE: classCode
+        });
+
+        const newDueDate = new Date(Date.now() + 24 * 60 * 60 * 1000);
+        const updateResult = await db.collection("LT_Workclasses").updateOne(
+            { _id: objectId, CLASS_CODE: classCode },
+            { $set: { DUEDATE: newDueDate } }
+        );
+
+        if (updateResult.matchedCount === 0) {
+            return res.status(404).json({ error: "Workclass not found or class code mismatch." });
+        }
+
+        if (!workclassDoc) {
+            return res.status(404).json({ error: "Workclass not found." });
+        }
+
+        const title = workclassDoc.TITLE;
+        const dueDate = new Date(workclassDoc.DUEDATE);
+
+        const subject = `Reminder: ${title} is due soon!`;
+
+
+        const classDoc = await db.collection("LT_Classes").findOne({ CLASS_CODE: classCode });
+
+        if (!classDoc || !Array.isArray(classDoc.STUDENTS)) {
+            return res.status(404).json({ error: "No students found for this class." });
+        }
+        
+        const className = classDoc.CLASS_NAME || classCode; // fallback if name is missing
+        const message = `Dear students, the workclass "${title}" in your class "${className}" is due on ${newDueDate.toLocaleString()}. Please make sure to submit it on time!`;
+
+        console.log("Class document:", classDoc);
+
+        const usernames = classDoc.STUDENTS.map(student => student.USERNAME).filter(Boolean);
+
+        if (usernames.length === 0) {
+            return res.status(404).json({ error: "No student usernames found." });
+        }
+
+        const users = await db.collection("LT_Students").find({ USERNAME: { $in: usernames } }).toArray();
+        const emails = users.map(u => u.EMAIL).filter(Boolean);
+
+        if (emails.length === 0) {
+            return res.status(404).json({ error: "No valid student emails found." });
+        }
+
+        await Promise.all(
+            emails.map(email =>
+                transporter.sendMail({
+                    from: '"Learn Track" <learntrackdb@gmail.com>',
+                    to: email,
+                    subject,
+                    text: message,
+                }).catch(err => {
+                    console.error(`Failed to send email to ${email}:`, err);
+                })
+            )
+        );
+
+        res.status(200).json({ message: `Sent reminder about "${title}" to ${emails.length} students.` });
+
+    } catch (error) {
+        console.error("Error sending email:", error);
+        res.status(500).json({ error: "Server error." });
+    }
+});
+
+
 app.post("/join-class/:classCode/students", async (req, res) => {
     const { student } = req.body;
     const classCode = req.params.classCode;
@@ -176,6 +267,160 @@ app.post("/create-class", async (req, res) => {
     } catch (error) {
         console.error(error);
         res.status(500).send('Error saving class to database.');
+    }
+});
+
+app.post("/create-announcements", async (req, res) => {
+    const { CLASS_CODE, NAME, EMAIL, CONTENT, DATE } = req.body;
+
+    try {
+        const database = client.db(dbName);
+        const collection = database.collection("LT_Announcement");
+
+        await collection.insertOne({
+            CLASS_CODE,
+            NAME,
+            EMAIL,
+            CONTENT,
+            DATE,
+        });
+
+        res.status(200).json({ message: 'Announcement created successfully.' });
+    } catch (error) {
+        console.error(error);
+        res.status(500).send('Error saving announcement to database.');
+    }
+});
+
+// Working for only assignments and material type classwork.
+app.post("/create-workclass", async (req, res) => {
+    const {
+        CLASS_CODE,
+        TITLE,
+        WORKCLASSTYPE,
+        INSTRUCTIONS,
+        QUESTIONS,
+        TIMELIMIT,
+        STARTDATETIME,
+        ENDDATETIME,
+        POINTSPOSSIBLE,
+        DESCRIPTION,
+        DUEDATE,
+        ALLOWLATESUBMISSIONS,
+        GRADEIMMEDIATELY,
+        ATTACHMENTS,
+        STATUS
+    } = req.body;
+
+    if (!CLASS_CODE || !TITLE || !WORKCLASSTYPE) {
+        return res.status(400).json({ error: "Missing required fields." });
+    }
+
+    // Validate DUE_DATE and parse it
+    let dueDate = null;
+    if (WORKCLASSTYPE === 'assignment' && DUEDATE) {
+        dueDate = new Date(DUEDATE);
+        if (isNaN(dueDate.getTime())) {
+            return res.status(400).json({ error: "Invalid due date format." });
+        }
+    }
+
+    const newWorkclass = {
+        CLASS_CODE,
+        TITLE,
+        WORKCLASSTYPE,
+        STATUS: STATUS || "published",
+        CREATED_AT: new Date().toISOString()
+    };
+
+    // Add type-specific fields based on WORKCLASSTYPE
+    if (WORKCLASSTYPE === "quiz") {
+        Object.assign(newWorkclass, {
+            INSTRUCTIONS,
+            QUESTIONS,
+            TIMELIMIT,
+            STARTDATETIME,
+            ENDDATETIME,
+            POINTSPOSSIBLE
+        });
+    } else if (WORKCLASSTYPE === "material") {
+        newWorkclass.DESCRIPTION = DESCRIPTION;
+    } else if (WORKCLASSTYPE === "question") {
+        Object.assign(newWorkclass, {
+            INSTRUCTIONS,
+            POINTSPOSSIBLE,
+            DUEDATE: dueDate, 
+            TYPE: "question"
+        });
+        console.log('Received DUE_DATE (Backend):', dueDate); 
+    } else if (WORKCLASSTYPE === "assignment") {
+        Object.assign(newWorkclass, {
+            INSTRUCTIONS,
+            DUEDATE: dueDate,  
+            POINTSPOSSIBLE,
+            ALLOWLATESUBMISSIONS,
+            GRADEIMMEDIATELY,
+            ATTACHMENTS,
+            WORKCLASSTYPE: "assignment"
+        });
+    } else {
+        return res.status(400).json({ error: "Invalid workclass type." });
+    }
+
+    try {
+        const db = client.db(dbName);
+        const collection = db.collection("LT_Workclasses");
+
+        await collection.insertOne(newWorkclass);
+
+        res.status(200).json({ message: "Workclass created successfully." });
+    } catch (error) {
+        console.error("Error inserting workclass:", error);
+        res.status(500).send("Error saving workclass to database.");
+    }
+});
+
+
+  // Display Worksclasses
+  app.get("/get-workclasses", async (req, res) => {
+    const { CLASS_CODE } = req.query;
+  
+    if (!CLASS_CODE) {
+      return res.status(400).json({ error: "Missing required query parameter: CLASS_CODE." });
+    }
+  
+    try {
+      const db = client.db(dbName);
+      const collection = db.collection("LT_Workclasses");
+  
+      const workclasses = await collection.find({ CLASS_CODE }).toArray();
+  
+      res.status(200).json(workclasses);
+    } catch (error) {
+      console.error("Error retrieving workclasses:", error);
+      res.status(500).send("Error retrieving workclasses from database.");
+    }
+  });  
+
+
+app.get("/show-announcements", async (req, res) => {
+    const classCode = req.query.CLASS_CODE;
+
+    try {
+        const database = client.db(dbName);
+        const collection = database.collection("LT_Announcement");
+
+        const query = classCode ? { CLASS_CODE: classCode } : {};
+
+        const announcements = await collection
+            .find(query)
+            .sort({ DATE: -1 }) // Optional: Sort by most recent
+            .toArray();
+
+        res.status(200).json(announcements);
+    } catch (error) {
+        console.error("Error fetching announcements:", error);
+        res.status(500).send("Error fetching announcements from database.");
     }
 });
 
@@ -249,6 +494,101 @@ app.get("/section-count", async (req, res) => {
     }
 });
 
+app.get("/student-count", async (req, res) => {
+    try {
+        const username = req.query.username;
+
+        if (!username) {
+            return res.status(400).json({ message: "Username is required" });
+        }
+
+        const database = client.db(dbName);
+        const collection = database.collection("LT_Classes");
+
+        // Fetch all STUDENTS arrays for classes created by this username
+        const classes = await collection.find({ USERNAME: username }).toArray();
+
+        const studentUsernamesSet = new Set();
+
+        classes.forEach(cls => {
+            if (Array.isArray(cls.STUDENTS)) {
+                cls.STUDENTS.forEach(student => {
+                    if (student.USERNAME !== username) {
+                        studentUsernamesSet.add(student.USERNAME);
+                    }
+                });
+            }
+        });
+
+        const uniqueStudentCount = studentUsernamesSet.size;
+
+        res.json({ uniqueStudents: uniqueStudentCount });
+    } catch (err) {
+        console.error("Error fetching student count:", err);
+        res.status(500).json({ message: "Failed to fetch student count" });
+    }
+});
+
+//STUDENT FUNCTIONALITIES
+app.get("/student-classes", async (req, res) => {
+    try {
+        const username = req.query.username;
+
+        if (!username) {
+            return res.status(400).json({ message: "Username is required" });
+        }
+
+        const database = client.db(dbName);
+        const collection = database.collection("LT_Classes");
+
+        const classes = await collection.find({
+            STUDENTS: { $elemMatch: { USERNAME: username } }
+        }).toArray();
+
+        res.json(classes);
+    } catch (err) {
+        console.error("Error fetching classes:", err);
+        res.status(500).json({ message: "Failed to fetch classes" });
+    }
+});
+
+app.get("/student-workclasses-count/:username", async (req, res) => {
+    const { username } = req.params;
+
+    if (!username) {
+        return res.status(400).json({ error: "Missing username." });
+    }
+
+    try {
+        const db = client.db(dbName);
+
+        // Step 1: Find all classes the student is joined in
+        const joinedClasses = await db.collection("LT_Classes").find({
+            "STUDENTS.USERNAME": username
+        }).toArray();
+
+        if (joinedClasses.length === 0) {
+            return res.status(200).json({ count: 0, workclasses: [] });
+        }
+
+        const joinedClassCodes = joinedClasses.map(cls => cls.CLASS_CODE);
+
+        // Step 2: Fetch all workclasses for those class codes
+        const workclasses = await db.collection("LT_Workclasses").find({
+            CLASS_CODE: { $in: joinedClassCodes }
+        }).toArray();
+
+        res.status(200).json({
+            count: workclasses.length,
+            workclasses: workclasses
+        });
+
+    } catch (error) {
+        console.error("Error fetching student workclasses:", error);
+        res.status(500).json({ error: "Server error." });
+    }
+});
+
 app.delete('/delete-class/:classCode', async (req, res) => {
     const { classCode } = req.params;
     console.log("Attempting to delete class with CLASS_CODE:", classCode);
@@ -287,7 +627,11 @@ app.get("/student-classes", async (req, res) => {
             STUDENTS: { $elemMatch: { USERNAME: username } }
         }).toArray();
 
-        res.json(classes);
+        res.json({ 
+            classes, 
+            count: classes.length 
+          });
+          
     } catch (err) {
         console.error("Error fetching classes:", err);
         res.status(500).json({ message: "Failed to fetch classes" });

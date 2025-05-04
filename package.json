@@ -1,8 +1,16 @@
 {
+  "name": "learntrack",
+  "version": "1.0.0",
+  "description": "LearnTrack Application",
+  "main": "server.js",
+  "type": "commonjs",
+  "scripts": {
+    "start": "node server.js"
+  },
   "dependencies": {
     "cors": "^2.8.5",
     "express": "^5.1.0",
-    "mongoose": "^8.13.2",
+    "mongodb": "^5.9.2",
     "nodemailer": "^6.10.1"
   }
 }

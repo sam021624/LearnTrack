@@ -2,34 +2,32 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Learn Track - Signup</title>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <link rel="icon" href="img/LearnTrack.ico" type="image/x-icon">
+    <title>Learn Track</title>
     <link rel="stylesheet" href="register.css">
+    <link rel="stylesheet" href="navbar.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <script defer src="register.js"></script>
-    <style>
-        /* Style for the select dropdown */
-        #role {
-            width: 100%; /* Set the width to 100% to match other inputs */
-            padding: 10px;
-            margin: 10px 0;
-            border: 1px solid #ccc;
-            border-radius: 5px;
-            box-sizing: border-box;
-        }
-    </style>
 </head>
 <body class="register-page">
-    <div class="navbar">
+    
+    <!-- NAV BAR -->
+    <nav class="navbar">
         <div class="nav-left">
-            <img src="Picture/logo.png" alt="LearnTrack">
+            <a href="index.html">
+                <img src="img/LearnTrackLogo.png" alt="LearnTrack" class="imglogo">
+            </a>
             <div class="nav-links">
-            <a href="#">Learn Track</a>
-            <a href="#">About Us</a>
+                <a href="index.html">Home</a>
+                <a href="about.html">About Us</a>
             </div>
         </div>
         <button id="login-button">Login</button>
-    </div>
+    </nav>
+
+    <!-- REGISTER SECTION -->
     <div class="container">
         <div class="left-section">
             <h1 class="Start-your">Start your learning journey with Learn Track</h1>
@@ -38,44 +36,121 @@
         <div class="right-section">
             <h3>Getting started is easy</h3>
             <p>Enter your information below to make an account</p>
+            
             <!-- Fullname input with validation message -->
-<input type="text" id="fullname" placeholder="Fullname">
-<p id="fullname-error" class="validation-message" style="display: none; color: red; font-size: 14px; margin-top: 5px;"></p>
+            <input type="text" id="fullname" placeholder="Fullname">
+            <p id="fullname-error" class="validation-message" style="display: none; color: red; font-size: 14px; margin-top: 5px;"></p>
 
-<!-- Username input with validation message -->
-<input type="text" id="username" placeholder="Username">
-<p id="username-error" class="validation-message" style="display: none; color: red; font-size: 14px; margin-top: 5px;"></p>
+            <!-- Username input with validation message -->
+            <input type="text" id="username" placeholder="Username">
+            <p id="username-error" class="validation-message" style="display: none; color: red; font-size: 14px; margin-top: 5px;"></p>
 
-<div class="password-container">
-    <input type="password" id="password" placeholder="Password">
-    <i class="fas fa-eye toggle-password" data-target="password"></i>
-</div>
-<p id="password-error" class="validation-message" style="display: none; color: red; font-size: 14px; margin-top: 5px;"></p>
+            <div class="password-container">
+                <input type="password" id="password" placeholder="Password">
+                <i class="fas fa-eye toggle-password" data-target="password"></i>
+            </div>
+            <p id="password-error" class="validation-message" style="display: none; color: red; font-size: 14px; margin-top: 5px;"></p>
 
-<div class="password-container">
-    <input type="password" id="confirm-password" placeholder="Confirm your password">
-    <i class="fas fa-eye toggle-password" data-target="confirm-password"></i>
-</div>
-<p id="confirm-password-error" class="validation-message" style="display: none; color: red; font-size: 14px; margin-top: 5px;"></p>
+            <div class="password-container">
+                <input type="password" id="confirm-password" placeholder="Confirm your password">
+                <i class="fas fa-eye toggle-password" data-target="confirm-password"></i>
+            </div>
+            <p id="confirm-password-error" class="validation-message" style="display: none; color: red; font-size: 14px; margin-top: 5px;"></p>
 
-<input type="email" id="email" placeholder="Enter your email" required>
-<p id="email-error" class="validation-message" style="display: none; color: red; font-size: 14px; margin-top: 5px;"></p>
+            <input type="email" id="email" placeholder="Enter your email" required>
+            <p id="email-error" class="validation-message" style="display: none; color: red; font-size: 14px; margin-top: 5px;"></p>
 
-<div class="verification-container">
-    <input type="text" id="verification-code" placeholder="Verification Code">
-    <button id="send-verification-button">Send</button>
-</div>
-<p id="verification-error" class="validation-message" style="display: none; color: red; font-size: 14px; margin-top: 5px;"></p>
+            <div class="verification-container">
+                <input type="text" id="verification-code" placeholder="Verification Code">
+                <button id="send-verification-button">Send</button>
+            </div>
+            <p id="verification-error" class="validation-message" style="display: none; color: red; font-size: 14px; margin-top: 5px;"></p>
 
-<select id="role">
-    <option>I am</option>
-    <option>Student</option>
-    <option>Teacher</option>
-</select>
-<p id="role-error" class="validation-message" style="display: none; color: red; font-size: 14px; margin-top: 5px;"></p>
+            <select id="role">
+                <option>I am</option>
+                <option>Student</option>
+                <option>Teacher</option>
+            </select>
+            <p id="role-error" class="validation-message" style="display: none; color: red; font-size: 14px; margin-top: 5px;"></p>
             <button id="signup-button">Sign up</button>
         </div>
     </div>
+
+    <!-- Storytelling Section -->
+    <section class="storytelling-section">
+        <div class="story-container">
+            <div class="story-text">
+                <h2>Transform Your Learning Experience</h2>
+                <p>LearnTrack was created with a simple mission: to make learning more accessible, engaging, and effective for students at Integrated Innovation and Hospitality College.</p>
+                <p>Our platform helps students stay on track with their coursework, connect with teachers, and achieve their academic goals through personalized learning experiences.</p>
+            </div>
+            <div class="story-image">
+                <img src="img/learning.jpg" alt="Students studying together">
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section class="features-section">
+        <div class="features-container">
+            <div class="features-heading">
+                <h2>Why Choose LearnTrack?</h2>
+                <p>Our platform offers everything you need to succeed in your academic journey</p>
+            </div>
+            <div class="features-grid">
+                <div class="feature-card">
+                    <i class="fas fa-chart-line"></i>
+                    <h3>Progress Tracking</h3>
+                    <p>Monitor your academic progress in real-time with detailed analytics and performance metrics.</p>
+                </div>
+                <div class="feature-card">
+                    <i class="fas fa-users"></i>
+                    <h3>Collaborative Learning</h3>
+                    <p>Connect with classmates and teachers through discussion forums and group projects.</p>
+                </div>
+                <div class="feature-card">
+                    <i class="fas fa-calendar-alt"></i>
+                    <h3>Organized Schedule</h3>
+                    <p>Keep track of assignments, exams, and deadlines with our intuitive calendar system.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="footer-container">
+            <div class="footer-section">
+                <h3>LearnTrack</h3>
+                <p>An automated system that monitors the progress of senior high school students at Integrated Innovation and Hospitality College.</p>
+            </div>
+            <div class="footer-section">
+                <h3>Quick Links</h3>
+                <a href="index.html">Home</a>
+                <a href="about.html">About Us</a>
+                <a href="#">Courses</a>
+                <a href="#">Contact</a>
+            </div>
+            <div class="footer-section">
+                <h3>Contact Us</h3>
+                <p><i class="fas fa-map-marker-alt"></i> 123 Education St., Manila, Philippines</p>
+                <p><i class="fas fa-phone"></i> +63 123 456 7890</p>
+                <p><i class="fas fa-envelope"></i> info@learntrack.edu.ph</p>
+            </div>
+            <div class="footer-section">
+                <h3>Follow Us</h3>
+                <div class="social-icons">
+                    <a href="#"><i class="fab fa-facebook-f"></i></a>
+                    <a href="#"><i class="fab fa-twitter"></i></a>
+                    <a href="#"><i class="fab fa-instagram"></i></a>
+                    <a href="#"><i class="fab fa-linkedin-in"></i></a>
+                </div>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>&copy; 2023 LearnTrack. All rights reserved.</p>
+        </div>
+    </footer>
 
     <!-- Success Modal -->
     <div id="success-modal" class="modal">

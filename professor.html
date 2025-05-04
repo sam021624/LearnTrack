@@ -31,7 +31,7 @@
               <p>Signed in as</p>
               <p class="user-email-display" id="userEmailDisplay">bacang.lancekirby@gmail.com</p>
             </div>
-            <a href="#" class="dropdown-item">
+            <a href="#" class="dropdown-item" onclick="showSettings()">
               <i class="fas fa-user-circle"></i> Profile
             </a>
             <a href="#" class="dropdown-item" onclick="signOut()">
@@ -61,14 +61,31 @@
     <a href="#" onclick="showContent('rankings')">
       <i class="fas fa-trophy"></i> Rankings
     </a>
+    <a href="#" onclick="showContent('allStudentGrading')">
+      <i class="fas fa-clipboard-list"></i> Grading
+    </a>
   </div>
 
   <!-- Navigation Bar -->
   <nav class="navbar">
-    <button class="join-class-btn" onclick="openModal()">
-      <i class="fas fa-plus"></i>
-    </button>
+
+    <!-- Add this at the beginning of your navbar -->
+<button class="hamburger-btn" onclick="toggleSidebar()">
+  <i class="fas fa-bars"></i>
+</button>
+
+<!-- Add the join class button -->
+<button class="join-class-btn" onclick="openModal()">
+  <i class="fas fa-plus"></i>
+</button>
+
+<button class="fullscreen-btn" onclick="toggleFullscreen()">
+  <i class="fas fa-expand"></i>
+</button>
+
   </nav>
+
+
 
   <div class="content" id="dashboard">
     <header class="content-header">
@@ -100,7 +117,7 @@
 
         <div class="total-students">
           <i class="fas fa-user-graduate"></i>
-          <span id="course-count">0</span>
+          <span id="total-student-count">0</span>
           <span>Total Students</span>
         </div>
       </div>
@@ -114,6 +131,7 @@
         <h1>Classroom</h1>
       </div>
     </header>
+    
     <div class="content-body">
       <div id="classContainer">
 
@@ -130,12 +148,30 @@
     </header>
 
     <div class="content-body">
+    <div class="rankings-container">
+        <!-- Left: Section Selection -->
+        <div class="class-sidebar">
+            <h3>Your Sections</h3>
+            <ul class="class-list">
+                <li class="active" data-section="Section A">Section A</li>
+                <li data-section="Section B">Section B</li>
+                <li data-section="Section C">Section C</li>
+            </ul>
+        </div>
 
+        <!-- Middle: Dynamically Generated Podium -->
+        <div class="podium-container">
+            <div class="podium"></div>
+        </div>
+
+        <!-- Right: Rankings List -->
+        <div class="rankings-list-container">
+            <div class="rankings-list"></div>
+        </div>
     </div>
   </div>
+</div>
 
-  <!-- Add this before your modals -->
-  <!-- Add this to your HTML -->
   <div class="content" id="classPage" style="display: none;">
     <header>
       <div class="header-container">
@@ -149,6 +185,11 @@
     </header>
 
     <div class="class-page-container">
+      <div class="class-tabs">
+        <button class="tab-button active" onclick="openClassTab('announcements')">Announcements</button>
+        <button class="tab-button" onclick="openClassTab('workclasses')">Workclasses</button>
+      </div>
+
       <!-- Container 1 -->
       <div class="class-info-container">
         <div class="class-meta">
@@ -238,6 +279,26 @@
           <!-- Announcements will be dynamically added here -->
         </div>
       </div>
+
+      <div class="workclasses-container" id="workclassesTab" style="display:none;">
+        <div class="tab-header">
+          <h3><i class="fas fa-briefcase"></i> Class Workclasses</h3>
+          <div class="workclass-dropdown">
+            <button class="create-workclass-btn" onclick="openWorkclassTypePage()">
+              <i class="fas fa-plus"></i> Create Workclass
+            </button>
+            <div class="dropdown-options" id="workclassDropdownOptions">
+              <div onclick="openWorkclassTypePage('assignment')"><i class="fas fa-tasks"></i> Assignment</div>
+              <div onclick="openWorkclassTypePage('quiz')"><i class="fas fa-clipboard-question"></i> Quiz Assignment</div>
+              <div onclick="openWorkclassTypePage('question')"><i class="fas fa-question-circle"></i> Question</div>
+              <div onclick="openWorkclassTypePage('material')"><i class="fas fa-book"></i> Material</div>
+            </div>
+          </div>
+          
+        </div>
+        <div id="classWorkclassesContainer" class="workclass-grid"></div>
+      </div>
+
     </div>
   </div>
 
@@ -257,20 +318,194 @@
     </div>
   </div>
 
-
-  <!-- Create Class Modal -->
-  <div class="modal" id="createClassModal">
-    <div class="modal-content">
-      <h3 class="modal-title">Create Class</h3>
-      <input type="text" id="classNameInput" class="modal-input" placeholder="Class name / Subject">
-      <input type="text" class="modal-input" placeholder="Section">
-      <input type="text" class="modal-input" placeholder="Your Name">
-      <div class="modal-actions">
-        <button class="modal-btn modal-btn-cancel" onclick="closeModal()">Cancel</button>
-        <button class="modal-btn modal-btn-create">Create</button>
+  <div class="content" id="allStudentGrading" style="display: none;">
+    <header>
+      <div class="header-container">
+        <button class="back-btn" onclick="backToClassPage()">
+          <i class="fas fa-arrow-left"></i> Back to Class
+        </button>
+        <h2 class="header-h2">Grading</h2>
+        <h1 id="gradingClassTitle">Class Name</h1>
+      </div>
+    </header>
+  
+    <div class="grading-container">
+      <!-- Class Selection Dropdown -->
+      <div class="class-selection">
+        <label for="classSelect">Select Class:</label>
+        <select id="classSelect" onchange="loadClassWorkForGrading()">
+          <option value="" disabled selected>Select a class</option>
+          <!-- Options will be dynamically populated -->
+        </select>
+      </div>
+  
+      <!-- Workclass List -->
+      <div class="workclass-list">
+        <h3>Class Work</h3>
+        <div id="workclassGradingList">
+          <!-- Workclasses for grading will be dynamically added here -->
+        </div>
+      </div>
+  
+      <!-- Student Grading Section -->
+      <div class="student-grading-section">
+        <h3>Student Submissions</h3>
+        <div id="studentGradingList">
+          <!-- Student submissions for grading will be dynamically added here -->
+        </div>
       </div>
     </div>
   </div>
+
+  <div class="content" id="settings" style="display:none;">
+    <header class="content-header">
+      <div class="header-container">
+        <h2 class="header-h2">Settings</h2>
+        <h1>Account Settings</h1>
+      </div>
+    </header>
+    
+    <div class="content-body">
+    <div class="settings-container">
+      <!-- Settings Navigation -->
+      <div class="settings-nav">
+        <button class="settings-nav-btn active" onclick="switchSettingsTab('profile')">
+          <i class="fas fa-user"></i> Profile Settings
+        </button>
+        <button class="settings-nav-btn" onclick="switchSettingsTab('system')">
+          <i class="fas fa-cog"></i> System Settings
+        </button>
+        <button class="settings-nav-btn" onclick="switchSettingsTab('privacy')">
+          <i class="fas fa-shield-alt"></i> Privacy & Security
+        </button>
+      </div>
+  
+      <!-- Settings Content -->
+      <div class="settings-content">
+        <!-- Profile Settings -->
+        <div id="profileSettings" class="settings-tab active">
+          <h3>Profile Settings</h3>
+          <div class="settings-form">
+            <div class="form-group">
+              <label>Profile Picture</label>
+              <div class="profile-upload">
+                <img id="profilePreview" src="Picture/gmailprofile.png" alt="Profile">
+                <button class="secondary-btn" onclick="uploadProfilePicture()">Change Picture</button>
+              </div>
+            </div>
+            <div class="form-group">
+              <label>Full Name</label>
+              <input type="text" id="fullName" value="Lance Kirby Bacang">
+            </div>
+            <div class="form-group">
+              <label>Email</label>
+              <input type="email" id="email" value="bacang.lancekirby@gmail.com" disabled>
+            </div>
+          </div>
+        </div>
+  
+        <!-- System Settings -->
+        <div id="systemSettings" class="settings-tab">
+          <h3>System Settings</h3>
+          <div class="settings-form">
+            <div class="form-group">
+              <label>Language</label>
+              <select id="language">
+                <option value="en">English</option>
+                <option value="es">Spanish</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Theme</label>
+              <select id="theme">
+                <option value="light">Light</option>
+                <option value="dark">Dark</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Notifications</label>
+              <div class="toggle-switch">
+                <input type="checkbox" id="notifications" checked>
+                <label for="notifications">Enable Notifications</label>
+              </div>
+            </div>
+          </div>
+        </div>
+  
+        <!-- Privacy Settings -->
+        <div id="privacySettings" class="settings-tab">
+          <h3>Privacy & Security</h3>
+          <div class="settings-form">
+            <div class="form-group">
+              <label>Change Password</label>
+              <input type="password" placeholder="Current Password">
+              <input type="password" placeholder="New Password">
+              <input type="password" placeholder="Confirm New Password">
+              <button class="primary-btn">Update Password</button>
+            </div>
+            <div class="form-group">
+              <label>Two-Factor Authentication</label>
+              <div class="toggle-switch">
+                <input type="checkbox" id="twoFactor">
+                <label for="twoFactor">Enable 2FA</label>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    </div>
+  </div>
+
+  <!-- Create Class Modal -->
+  <div id="createClassModal" class="modal">
+    <div class="modal-content">
+      <h2>Create New Class</h2>
+      <input type="text" class="modal-input" placeholder="Class Name" required>
+      <input type="text" class="modal-input" placeholder="Section">
+      <input type="text" class="modal-input" placeholder="Teacher Name">
+      <div class="modal-buttons">
+        <button class="modal-btn-cancel" onclick="closeModal()">Cancel</button>
+        <button class="modal-btn-create" onclick="createClass()">Create</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Workclass Modal -->
+<!-- Update the workclass modal -->
+<div class="modal" id="workclassModal">
+  <div class="modal-content">
+    <h3 class="modal-title">Create Workclass</h3>
+    <input type="text" id="workclassNameInput" class="modal-input" placeholder="Workclass name">
+    <input type="text" id="workclassDescription" class="modal-input" placeholder="Description (optional)">
+    
+    <!-- Add workclass type selection -->
+    <div class="workclass-type-selector">
+      <h4>Select Workclass Type:</h4>
+      <div class="type-options">
+        <div class="type-option" onclick="selectWorkclassType('assignment')">
+          <i class="fas fa-tasks"></i>
+          <span>Assignment</span>
+        </div>
+        <div class="type-option" onclick="selectWorkclassType('quiz')">
+          <i class="fas fa-question-circle"></i>
+          <span>Quiz</span>
+        </div>
+        <div class="type-option" onclick="selectWorkclassType('material')">
+          <i class="fas fa-book"></i>
+          <span>Material</span>
+        </div>
+      </div>
+      <input type="hidden" id="workclassType" value="">
+    </div>
+    
+    <div class="modal-actions">
+      <button class="modal-btn modal-btn-cancel" onclick="closeWorkclassModal()">Cancel</button>
+      <button class="modal-btn modal-btn-create" onclick="createWorkclass()">Create</button>
+    </div>
+  </div>
+</div>
+
   <script src="professor.js" defer></script>
 
   <!-- Loading Overlay -->
@@ -287,6 +522,8 @@
       <div class="class-box skeleton-card" style="height: 250px;"></div>
     </div>
   </div>
+
+
 
 </body>
 
