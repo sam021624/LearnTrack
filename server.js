@@ -250,7 +250,8 @@ app.post("/submit-work", upload.single("file"), async (req, res) => {
             "SUBMISSIONS.$.SUBMITTEDAT": new Date(),
             "SUBMISSIONS.$.SUBMITTED": true,
             "SUBMISSIONS.$.FILENAME": file.filename,
-            "SUBMISSIONS.$.ORIGINALNAME": file.originalname
+            "SUBMISSIONS.$.ORIGINALNAME": file.originalname,
+            "SUBMISSIONS.$.STATUS": "Turned In" // <-- Set status to Turned In
           }
         }
       );
@@ -265,6 +266,7 @@ app.post("/submit-work", upload.single("file"), async (req, res) => {
           ORIGINALNAME: file.originalname,
           SUBMITTEDAT: new Date(),
           SUBMITTED: true,
+          STATUS: "Turned In", // <-- Set status to Turned In
           BASE64DATA: base64String
         };
   
@@ -438,9 +440,9 @@ app.get('/rankings/:classCode', async (req, res) => {
     }
 });
 
-// Run every 5
-cron.schedule('* * * * *', async () => {
-    console.log("Checking all workclasses for upcoming reminders...");
+// Run every 5 minutes
+cron.schedule('*/5 * * * *', async () => {
+    //console.log("Checking all workclasses for upcoming reminders...");
 
     try {
         await client.connect();
@@ -504,9 +506,9 @@ app.post("/send-email-due-soon", async (req, res) => {
         const now = new Date();
         const minutesUntilDue = Math.floor((dueDate - now) / (1000 * 60));
 
-        console.log(`Now: ${now}`);
-        console.log(`Due: ${dueDate}`);
-        console.log(`Minutes until due: ${minutesUntilDue}`);
+        // console.log(`Now: ${now}`);
+        // console.log(`Due: ${dueDate}`);
+        // console.log(`Minutes until due: ${minutesUntilDue}`);
 
         // Check if the remaining time is exactly 1080, 720, 360, or 180 minutes
         const allowedMinutes = [1080, 720, 360, 180];
@@ -692,49 +694,62 @@ app.post("/create-workclass", async (req, res) => {
         }
     }
 
-    const newWorkclass = {
-        CLASS_CODE,
-        TITLE,
-        WORKCLASSTYPE,
-        STATUS: STATUS || "published",
-        CREATED_AT: new Date().toISOString(),
-        ATTACHMENTS: base64Data || ATTACHMENTS  
-    };
-
-    if (WORKCLASSTYPE === "quiz") {
-        Object.assign(newWorkclass, {
-            INSTRUCTIONS,
-            QUESTIONS,
-            TIMELIMIT,
-            STARTDATETIME,
-            ENDDATETIME,
-            POINTSPOSSIBLE
-        });
-    } else if (WORKCLASSTYPE === "material") {
-        newWorkclass.DESCRIPTION = DESCRIPTION;
-    } else if (WORKCLASSTYPE === "question") {
-        Object.assign(newWorkclass, {
-            INSTRUCTIONS,
-            POINTSPOSSIBLE,
-            DUEDATE: dueDate, 
-            TYPE: "question"
-        });
-    } else if (WORKCLASSTYPE === "assignment") {
-        Object.assign(newWorkclass, {
-            INSTRUCTIONS,
-            DUEDATE: dueDate,  
-            POINTSPOSSIBLE,
-            ALLOWLATESUBMISSIONS,
-            GRADEIMMEDIATELY
-        });
-    } else {
-        return res.status(400).json({ error: "Invalid workclass type." });
-    }
-
     try {
         const db = client.db(dbName);
-        const collection = db.collection("LT_Workclasses");
 
+        // Fetch students in the class
+        const classDoc = await db.collection("LT_Classes").findOne({ CLASS_CODE });
+        const students = (classDoc && Array.isArray(classDoc.STUDENTS)) ? classDoc.STUDENTS : [];
+
+        // Prepare SUBMISSIONS array with default status "Assigned"
+        const SUBMISSIONS = students.map(student => ({
+            STUDENTUSERNAME: student.USERNAME,
+            FULL_NAME: student.NAME || student.FULL_NAME || "",
+            STATUS: "Assigned",
+            SUBMITTED: false
+        }));
+
+        const newWorkclass = {
+            CLASS_CODE,
+            TITLE,
+            WORKCLASSTYPE,
+            STATUS: STATUS || "published",
+            CREATED_AT: new Date().toISOString(),
+            ATTACHMENTS: base64Data || ATTACHMENTS,
+            SUBMISSIONS // Add the default submissions array
+        };
+
+        if (WORKCLASSTYPE === "quiz") {
+            Object.assign(newWorkclass, {
+                INSTRUCTIONS,
+                QUESTIONS,
+                TIMELIMIT,
+                STARTDATETIME,
+                ENDDATETIME,
+                POINTSPOSSIBLE
+            });
+        } else if (WORKCLASSTYPE === "material") {
+            newWorkclass.DESCRIPTION = DESCRIPTION;
+        } else if (WORKCLASSTYPE === "question") {
+            Object.assign(newWorkclass, {
+                INSTRUCTIONS,
+                POINTSPOSSIBLE,
+                DUEDATE: dueDate, 
+                TYPE: "question"
+            });
+        } else if (WORKCLASSTYPE === "assignment") {
+            Object.assign(newWorkclass, {
+                INSTRUCTIONS,
+                DUEDATE: dueDate,  
+                POINTSPOSSIBLE,
+                ALLOWLATESUBMISSIONS,
+                GRADEIMMEDIATELY
+            });
+        } else {
+            return res.status(400).json({ error: "Invalid workclass type." });
+        }
+
+        const collection = db.collection("LT_Workclasses");
         await collection.insertOne(newWorkclass);
 
         res.status(200).json({ message: "Workclass created successfully." });

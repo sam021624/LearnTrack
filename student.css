@@ -2126,6 +2126,11 @@ color: #1976d2;
   color: #34a853;
 }
 
+.submission-status.assigned {
+  color: #007bff;
+  font-weight: bold;
+}
+
 .submission-status.missing {
   background: #fce8e6;
   color: #d93025;

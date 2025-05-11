@@ -450,6 +450,19 @@ async function loadClassWork() {
     workclasses.forEach(workclass => {
       const dueDate = new Date(workclass.DUEDATE || workclass.ENDDATETIME || workclass.STARTDATETIME || Date.now());
 
+      // Find this student's submission
+      const submission = (workclass.SUBMISSIONS || []).find(
+        s => s.STUDENTUSERNAME === userName
+      );
+
+      // Determine status for this student
+      let studentStatus = "Assigned";
+      if (submission) {
+        if (submission.STATUS === "Turned In" || submission.SUBMITTED) {
+          studentStatus = "Turned In";
+        }
+      }
+
       const element = document.createElement('div');
       element.className = `workclass-card ${workclass.WORKCLASSTYPE}`;
       element.innerHTML = `
@@ -461,19 +474,14 @@ async function loadClassWork() {
         </div>
         <div class="workclass-card-body">
           <p>Due: ${dueDate.toLocaleDateString()}</p>
-          <p>Status: <span class="submission-status ${getStatusClass(workclass)}">
-            ${getStatusText(workclass)}
-          </span></p>
+          <p>Status: <span class="submission-status ${studentStatus === 'Turned In' ? 'turned-in' : studentStatus === 'Assigned' ? 'assigned' : ''}">
+            ${studentStatus}
+           </span></p>
         </div>
         <div class="workclass-card-footer">
           <button class="secondary-btn" onclick="viewWorkclass('${workclass._id}')">
             <i class="fas fa-eye"></i> View
           </button>
-          ${workclass.STATUS === 'assigned' ? `
-            <button class="primary-btn" onclick="submitWork('${workclass._id}')">
-              <i class="fas fa-paper-plane"></i> Submit
-            </button>
-          ` : ''}
         </div>
       `;
       container.appendChild(element);
