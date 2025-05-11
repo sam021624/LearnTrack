@@ -43,7 +43,9 @@ const studentData = {
     loadEnrolledClasses();
     
     // Initialize dashboard counts
+    displayGrades();
     updateDashboardCounts();
+
     
     // Set up event listeners
     setupEventListeners();
@@ -185,6 +187,8 @@ async function displayGrades() {
   const gradesContainer = document.getElementById('gradesContainer');
   gradesContainer.innerHTML = ''; // Clear existing content
 
+  const subjectAverages = {}; // For dashboard use
+
   try {
     const response = await fetch(`http://localhost:3000/show-student-grades?username=${userName}`);
     const gradesData = await response.json();
@@ -195,20 +199,25 @@ async function displayGrades() {
     }
 
     const gradesByCourse = {};
+
     gradesData.forEach(grade => {
       const courseCode = grade.CLASSCODE || "Unknown";
+      const subject = grade.classDetails?.CLASS_NAME || "Unknown Subject";
+      const professor = grade.classDetails?.NAME || "Unknown Professor";
+
       if (!gradesByCourse[courseCode]) {
         gradesByCourse[courseCode] = {
-          grades: [],
-          subject: grade.classDetails?.CLASS_NAME || "Unknown Subject",
-          professor: grade.classDetails?.NAME || "Unknown Professor"
+          subject,
+          professor,
+          grades: []
         };
       }
+
       gradesByCourse[courseCode].grades.push({
         title: grade.workclassDetails?.TITLE || "Untitled",
         type: grade.workclassDetails?.WORKCLASSTYPE || "Activity",
-        score: grade.GRADE || null,
-        total: grade.workclassDetails?.POINTSPOSSIBLE || null
+        score: grade.GRADE ?? null,
+        total: grade.workclassDetails?.POINTSPOSSIBLE ?? null
       });
     });
 
@@ -228,17 +237,25 @@ async function displayGrades() {
         </div>
       `).join('');
 
-      const submitted = courseData.grades.filter(g => g.score !== null);
+      // Calculate overall
+      const submitted = courseData.grades.filter(g => g.score !== null && g.total !== null);
       const totalScore = submitted.reduce((sum, g) => sum + g.score, 0);
       const totalMax = submitted.reduce((sum, g) => sum + g.total, 0);
-      const overall = totalMax > 0 ? Math.round((totalScore / totalMax) * 100) : 'N/A';
+      const overall = totalMax > 0 ? Math.round((totalScore / totalMax) * 100) : null;
+
+      // Store for dashboard use
+      subjectAverages[courseData.subject] = {
+        percentage: overall,
+        totalScore,
+        totalMax
+      };
 
       courseElement.innerHTML = `
         <div class="course-header">
           <h3>${courseData.subject}</h3>
           <div class="course-meta">
             <span>${courseData.professor}</span>
-            <span class="overall-grade">Overall: ${overall}%</span>
+            <span class="overall-grade">Overall: ${overall ?? 'N/A'}%</span>
           </div>
         </div>
         <div class="grades-list">
@@ -249,7 +266,7 @@ async function displayGrades() {
       gradesContainer.appendChild(courseElement);
     }
 
-    updateDashboardStats(); // If you have a function for updating stats
+    updateDashboardStats(subjectAverages); // 👈 Send the subject-wise averages
 
   } catch (error) {
     console.error("Error fetching student grades:", error);
@@ -260,25 +277,31 @@ async function displayGrades() {
 
 
 // Function to update dashboard statistics
-function updateDashboardStats() {
-  const totalCourses = sampleGrades.courses.length;
-  const totalAssignments = sampleGrades.courses.reduce((acc, course) => 
-    acc + course.grades.length, 0);
-  const pendingAssignments = sampleGrades.courses.reduce((acc, course) => 
-    acc + course.grades.filter(grade => !grade.submitted).length, 0);
-  const averageGrade = sampleGrades.courses.reduce((acc, course) => 
-    acc + course.overallGrade, 0) / totalCourses;
+function updateDashboardStats(subjectAverages) {
+  const subjects = Object.values(subjectAverages);
+
+  const totalCourses = subjects.length;
+  let totalAssignments = 0;
+  let totalScore = 0;
+  let totalMax = 0;
+
+  subjects.forEach(subject => {
+    totalScore += subject.totalScore;
+    totalMax += subject.totalMax;
+    // We can assume each assignment was worth >0
+    totalAssignments += subject.totalMax > 0 ? subject.totalMax / 100 : 0; // or count from backend later
+  });
+
+  const averageGrade = totalMax > 0
+    ? Math.round((totalScore / totalMax) * 100)
+    : 0;
 
   document.getElementById('course-count').textContent = totalCourses;
   document.getElementById('active-course-count').textContent = totalCourses;
-  document.getElementById('assignments-due-count').textContent = pendingAssignments;
+  document.getElementById('assignments-due-count').textContent = "—"; // Optional: pending count logic later
+  document.getElementById('average-grade').textContent = `${averageGrade}%`;
 }
 
-// Call displayGrades when the page loads
-document.addEventListener('DOMContentLoaded', () => {
-  displayGrades();
-});
-  
   async function joinClass() {
     const classCode = document.getElementById('classCodeInput').value.trim().toUpperCase();
 
