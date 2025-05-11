@@ -914,6 +914,67 @@ app.get("/student-classes", async (req, res) => {
     }
 });
 
+app.get("/show-student-grades", async (req, res) => {
+    try {
+        const username = req.query.username;
+
+        if (!username) {
+            return res.status(400).json({ message: "Username is required" });
+        }
+
+        const database = client.db(dbName);
+        const gradesCollection = database.collection("LT_Grades");
+
+        const gradesWithDetails = await gradesCollection.aggregate([
+            {
+                $match: {
+                    STUDENT_USERNAME: username
+                }
+            },
+            {
+                $addFields: {
+                    workclassObjId: { $toObjectId: "$WORKCLASS_ID" }
+                }
+            },
+            {
+                $lookup: {
+                    from: "LT_Workclasses",
+                    localField: "workclassObjId",
+                    foreignField: "_id",
+                    as: "workclassDetails"
+                }
+            },
+            {
+                $unwind: {
+                    path: "$workclassDetails",
+                    preserveNullAndEmptyArrays: true
+                }
+            },
+            {
+                $lookup: {
+                    from: "LT_Classes",
+                    localField: "CLASSCODE",
+                    foreignField: "CLASS_CODE",
+                    as: "classDetails"
+                }
+            },
+            {
+                $unwind: {
+                    path: "$classDetails",
+                    preserveNullAndEmptyArrays: true
+                }
+            }
+        ]).toArray();
+
+        res.json(gradesWithDetails);
+    } catch (err) {
+        console.error("Error fetching student grades with full details:", err);
+        res.status(500).json({ message: "Failed to fetch student grades" });
+    }
+});
+
+
+
 app.get("/student-workclasses-count/:username", async (req, res) => {
     const { username } = req.params;
 

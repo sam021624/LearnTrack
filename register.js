@@ -15,8 +15,6 @@ document.addEventListener("DOMContentLoaded", function () {
     const sendVerificationButton = document.getElementById("send-verification-button");
     const loginForm = document.getElementById("login-form");
 
-    
-
     if (passwordInput && passwordError) {
         passwordInput.addEventListener("input", function () {
             if (passwordInput.value.length < 8) {

@@ -33,7 +33,6 @@ const studentData = {
       userFullName = user.FULL_NAME
 
       userName = user.USERNAME;
-
     }
 
     fetchProfilePicture(userName);
@@ -182,46 +181,83 @@ const sampleGrades = {
 };
 
 // Function to display grades
-function displayGrades() {
+async function displayGrades() {
   const gradesContainer = document.getElementById('gradesContainer');
   gradesContainer.innerHTML = ''; // Clear existing content
 
-  sampleGrades.courses.forEach(course => {
-    const courseElement = document.createElement('div');
-    courseElement.className = 'course-grade-card';
-    
-    const gradesList = course.grades.map(grade => `
-      <div class="grade-item ${!grade.submitted ? 'pending' : ''}">
-        <div class="grade-info">
-          <span class="grade-type">${grade.type}</span>
-          <span class="grade-name">${grade.name}</span>
-        </div>
-        <div class="grade-score">
-          ${grade.submitted ? `${grade.score}/${grade.totalPoints}` : 'Pending'}
-        </div>
-      </div>
-    `).join('');
-    
+  try {
+    const response = await fetch(`http://localhost:3000/show-student-grades?username=${userName}`);
+    const gradesData = await response.json();
 
-    courseElement.innerHTML = `
-      <div class="course-header">
-        <h3>${course.name}</h3>
-        <div class="course-meta">
-          <span>${course.professor}</span>
-          <span class="overall-grade">Overall: ${course.overallGrade}%</span>
+    if (!gradesData || gradesData.length === 0) {
+      gradesContainer.innerHTML = "<p>No grades found.</p>";
+      return;
+    }
+
+    const gradesByCourse = {};
+    gradesData.forEach(grade => {
+      const courseCode = grade.CLASSCODE || "Unknown";
+      if (!gradesByCourse[courseCode]) {
+        gradesByCourse[courseCode] = {
+          grades: [],
+          subject: grade.classDetails?.CLASS_NAME || "Unknown Subject",
+          professor: grade.classDetails?.NAME || "Unknown Professor"
+        };
+      }
+      gradesByCourse[courseCode].grades.push({
+        title: grade.workclassDetails?.TITLE || "Untitled",
+        type: grade.workclassDetails?.WORKCLASSTYPE || "Activity",
+        score: grade.GRADE || null,
+        total: grade.workclassDetails?.POINTSPOSSIBLE || null
+      });
+    });
+
+    for (const [courseCode, courseData] of Object.entries(gradesByCourse)) {
+      const courseElement = document.createElement('div');
+      courseElement.className = 'course-grade-card';
+
+      const gradesList = courseData.grades.map(grade => `
+        <div class="grade-item ${grade.score === null ? 'pending' : ''}">
+          <div class="grade-info">
+            <span class="grade-type">${grade.type}</span>
+            <span class="grade-name">${grade.title}</span>
+          </div>
+          <div class="grade-score">
+            ${grade.score !== null ? `${grade.score}/${grade.total}` : 'Pending'}
+          </div>
         </div>
-      </div>
-      <div class="grades-list">
-        ${gradesList}
-      </div>
-    `;
+      `).join('');
 
-    gradesContainer.appendChild(courseElement);
-  });
+      const submitted = courseData.grades.filter(g => g.score !== null);
+      const totalScore = submitted.reduce((sum, g) => sum + g.score, 0);
+      const totalMax = submitted.reduce((sum, g) => sum + g.total, 0);
+      const overall = totalMax > 0 ? Math.round((totalScore / totalMax) * 100) : 'N/A';
 
-  // Update dashboard statistics
-  updateDashboardStats();
+      courseElement.innerHTML = `
+        <div class="course-header">
+          <h3>${courseData.subject}</h3>
+          <div class="course-meta">
+            <span>${courseData.professor}</span>
+            <span class="overall-grade">Overall: ${overall}%</span>
+          </div>
+        </div>
+        <div class="grades-list">
+          ${gradesList}
+        </div>
+      `;
+
+      gradesContainer.appendChild(courseElement);
+    }
+
+    updateDashboardStats(); // If you have a function for updating stats
+
+  } catch (error) {
+    console.error("Error fetching student grades:", error);
+    gradesContainer.innerHTML = "<p>Error loading grades. Please try again later.</p>";
+  }
 }
+
+
 
 // Function to update dashboard statistics
 function updateDashboardStats() {
