@@ -267,7 +267,6 @@ async function deleteClass(classCode) {
         }
 
         const result = await response.json();
-        console.log('Success:', result.message);
 
         // Refresh the class list after deletion
         showLoading();
@@ -1148,7 +1147,7 @@ async function viewWorkclass(workclassId) {
       showLoading();
   
       // Fetch workclass details from backend
-      const response = await fetch(`http://localhost:3000/get-workclass/${workclassId}`);
+      const response = await fetch(`http://localhost:3000/view-workclass/${workclassId}`);
       if (!response.ok) {
         throw new Error('Failed to fetch workclass details');
       }
@@ -1170,7 +1169,7 @@ async function viewWorkclass(workclassId) {
             <p>${workclass.INSTRUCTIONS || 'No description provided'}</p>
             <div class="workclass-meta">
               <span><i class="fas fa-calendar"></i> Due: ${workclass.DUEDATE ? new Date(workclass.DUEDATE).toLocaleDateString() : 'No due date'}</span>
-              <span><i class="fas fa-users"></i> Submissions: ${workclass.submissions || 0}</span>
+              <span><i class="fas fa-users"></i> Submissions: ${workclass.SUBMISSIONS ? workclass.SUBMISSIONS.length : 0}</span>
             </div>
             ${workclass.attachments ? `
               <div class="attachments">
@@ -1660,8 +1659,6 @@ async function loadClassWorkForGrading() {
 
     workclassGradingList.innerHTML = '<p>Loading workclasses...</p>';
 
-    console.log(classCode);
-
     try {
         const response = await fetch(`http://localhost:3000/get-workclasses?CLASS_CODE=${classCode}`);
         if (!response.ok) {
@@ -1747,7 +1744,6 @@ function switchSection(sectionId) {
     // Update podium and rankings list for the selected section
     updateRankings(sectionId);
 
-    console.log(sectionId);
 }
 
 // Function to update rankings display
@@ -1847,8 +1843,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     const userData = localStorage.getItem('user')
     const user = JSON.parse(userData)   
 
-    console.log(user.USERNAME);
-
     try {
         const res = await fetch(`http://localhost:3000/classes?username=${encodeURIComponent(user.USERNAME)}`);
         const classes = await res.json();
@@ -1878,7 +1872,6 @@ document.querySelectorAll('.class-list li').forEach(item => {
 
             switchSection(sectionId, studentData);
 
-            console.log(studentData);
         } catch (err) {
             console.error("Failed to load rankings:", err);
         }
@@ -1958,7 +1951,6 @@ async function populateClassDropdown() {
     }
 
     fetchedClasses = await response.json();
-    console.log("Fetched classes:", fetchedClasses);
     
     fetchedClasses.forEach(classItem => {
         const option = document.createElement('option');
@@ -1976,8 +1968,6 @@ async function loadStudentSubmissions(workclassId) {
 
     gradingList.innerHTML = '<p>Loading...</p>';
 
-    console.log(workclassId)
-    
     try {
         // Modify the fetch request to include both workclassId and classCode
         const response = await fetch(`http://localhost:3000/get-submissions-by-classcode/${encodeURIComponent(classCode)}/${encodeURIComponent(workclassId)}`);
@@ -1995,8 +1985,6 @@ async function loadStudentSubmissions(workclassId) {
             const submissionElement = document.createElement('div');
             submissionElement.className = 'student-submission';
 
-            console.log(submission.SUBMITTED, submission.BASE64DATA);
-          
             // Use BASE64DATA or submission URL if applicable
             const viewButton = submission.SUBMITTED === true
               ? `<button class="view-submission-btn" onclick="openInBrowser('${submission.BASE64DATA}')">

@@ -850,6 +850,31 @@ app.post("/create-workclass", async (req, res) => {
     }
   });  
 
+app.get("/view-workclass/:id", async (req, res) => {
+  const { id } = req.params;
+
+  if (!id) {
+    return res.status(400).json({ error: "Missing required parameter: id." });
+  }
+
+  try {
+    const db = client.db(dbName);
+    const collection = db.collection("LT_Workclasses");
+
+    const workclass = await collection.findOne({ _id: new ObjectId(id) });
+
+    if (!workclass) {
+      return res.status(404).json({ error: "Workclass not found." });
+    }
+
+    res.status(200).json(workclass);
+  } catch (error) {
+    console.error("Error retrieving workclass by ID:", error);
+    res.status(500).send("Error retrieving workclass from database.");
+  }
+});
+
+
 
 app.get("/show-announcements", async (req, res) => {
     const classCode = req.query.CLASS_CODE;
