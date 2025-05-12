@@ -14,6 +14,7 @@ const studentData = {
   let classCode = '';
   let userClasses = [];
   let announcements = []; 
+  let announcementData = [];
   let assignmentsCount = 0;
 
   document.addEventListener('DOMContentLoaded', function() {
@@ -46,9 +47,13 @@ const studentData = {
     displayGrades();
     updateDashboardCounts();
 
-    
     // Set up event listeners
     setupEventListeners();
+
+    document.getElementById('sortFeed').addEventListener('change', function() {
+      loadAnnouncements(classCode);
+    });
+
   });
   
   async function loadEnrolledClasses() {
@@ -379,27 +384,57 @@ function openClassPage(classData) {
   document.getElementById('classPage').style.display = 'block';
 
   openClassTab('announcements'); // Default tab
-
-  // Now load announcements for the given classCode
   loadAnnouncements(classCode); // Pass the correct classCode here
   loadClassWork();
 }
 
-async function loadAnnouncements() {
+  function openClassTab(tabName) {
+    // Hide all tab content
+    document.getElementById('announcementsTab').style.display = 'none';
+    document.getElementById('workclassesTab').style.display = 'none';
+
+    // Remove active class from all tab buttons
+    const tabButtons = document.querySelectorAll('.tab-button');
+    tabButtons.forEach(button => button.classList.remove('active'));
+
+    // Show the selected tab content and set button as active
+    document.getElementById(tabName + 'Tab').style.display = 'block';
+    document.querySelector(`button[onclick="openClassTab('${tabName}')"]`).classList.add('active');
+
+    // Load content based on tab
+    if (tabName === 'announcements') {
+      loadAnnouncements(classCode); // <-- Always pass the current class code!
+    } else if (tabName === 'workclasses') {
+      loadClassWork();
+    }
+  }
+
+async function loadAnnouncements(classCode) {
   const container = document.getElementById('announcementsList');
   container.innerHTML = ''; // Clear previous content
 
   try {
-    const announcements = await fetchAnnouncements(classCode);
+    // Fetch only announcements for the given classCode
+    announcementData = await fetchAnnouncements(classCode);
 
-    if (announcements.length === 0) {
+    if (!announcementData.length) {
       document.getElementById('noAnnouncements').style.display = 'flex';
       return;
     }
 
     document.getElementById('noAnnouncements').style.display = 'none';
 
-    announcements.forEach(announcement => {
+    // Sort announcements
+    const sortBy = document.getElementById('sortFeed').value;
+    const sortedAnnouncements = [...announcementData];
+    sortedAnnouncements.sort((a, b) => {
+      const dateA = new Date(a.DATE);
+      const dateB = new Date(b.DATE);
+      return sortBy === 'newest' ? dateB - dateA : dateA - dateB;
+    });
+
+    // Render sorted announcements
+    sortedAnnouncements.forEach(announcement => {
       const element = document.createElement('div');
       element.className = 'announcement-card card';
       element.innerHTML = `
@@ -1286,7 +1321,7 @@ function confirmSignOut() {
 
   async function fetchAnnouncements(classCode = null) {   
     const query = classCode ? `?CLASS_CODE=${encodeURIComponent(classCode)}` : "";
-    const response = await fetch(`http://localhost:3000/show-announcements${query}`);
+    const response = await fetch(`http://localhost:3000/show-announcements?CLASS_CODE=${encodeURIComponent(classCode)}`);
   
     if (!response.ok) {
       const errorText = await response.text();
