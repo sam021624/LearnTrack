@@ -975,6 +975,7 @@ app.get("/student-count", async (req, res) => {
 });
 
 //STUDENT FUNCTIONALITIES
+// -- getting student classes
 app.get("/student-classes", async (req, res) => {
     try {
         const username = req.query.username;
@@ -1057,7 +1058,7 @@ app.get("/show-student-grades", async (req, res) => {
 });
 
 
-
+// -- showing student count
 app.get("/student-workclasses-count/:username", async (req, res) => {
     const { username } = req.params;
 

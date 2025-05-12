@@ -185,9 +185,9 @@ const sampleGrades = {
 // Function to display grades
 async function displayGrades() {
   const gradesContainer = document.getElementById('gradesContainer');
-  gradesContainer.innerHTML = ''; // Clear existing content
+  gradesContainer.innerHTML = ''; 
 
-  const subjectAverages = {}; // For dashboard use
+  const subjectAverages = {}; 
 
   try {
     const user = JSON.parse(localStorage.getItem('user'));
@@ -851,52 +851,52 @@ function switchSection(sectionId) {
 
 // Function to update rankings display
 async function updateRankings(sectionId) {
-  const podium = document.querySelector('.podium');
-  const rankingsList = document.querySelector('.rankings-list');
+    const podium = document.querySelector('.podium');
+    const rankingsList = document.querySelector('.rankings-list');
 
-  // Clear existing content
-  podium.innerHTML = '';
-  rankingsList.innerHTML = '';
+    // Clear existing content
+    podium.innerHTML = '';
+    rankingsList.innerHTML = '';
 
-  try {
-      const res = await fetch(`http://localhost:3000/rankings/${encodeURIComponent(sectionId)}`);
-      const rawRankings = await res.json();
-  
-      if (!Array.isArray(rawRankings) || rawRankings.length === 0) {
-          rankingsList.innerHTML = '<p>No rankings available for this section.</p>';
-          return;
-      }
-  
-      const rankingsMap = new Map();
-  
-      rawRankings.forEach(entry => {
-          const key = entry.name;
-          const existing = rankingsMap.get(key);
-  
-          if (existing) {
-              existing.score += entry.score;
-          } else {
-              rankingsMap.set(key, {
-                  name: entry.name,
-                  score: entry.score,
-                  avatar: entry.avatar || `https://i.pravatar.cc/150?u=${encodeURIComponent(entry.name)}`
-              });
-          }
-      });
-  
-      // Convert map back to array and sort by score
-      const rankings = Array.from(rankingsMap.values()).sort((a, b) => b.score - a.score);
-  
-      // Create podium for top 3
-      createPodium(rankings.slice(0, 3));
-  
-      // Create full rankings list
-      createRankingsList(rankings);
-  } catch (error) {
-      console.error("Failed to fetch rankings:", error);
-      rankingsList.innerHTML = '<p>Error loading rankings.</p>';
-  }
-  
+    try {
+        const res = await fetch(`http://localhost:3000/rankings/${encodeURIComponent(sectionId)}`);
+        const rawRankings = await res.json();
+    
+        if (!Array.isArray(rawRankings) || rawRankings.length === 0) {
+            rankingsList.innerHTML = '<p>No rankings available for this section.</p>';
+            return;
+        }
+    
+        const rankingsMap = new Map();
+    
+        rawRankings.forEach(entry => {
+            const key = entry.name;
+            const existing = rankingsMap.get(key);
+    
+            if (existing) {
+                existing.score += entry.score;
+            } else {
+                rankingsMap.set(key, {
+                    name: entry.name,
+                    score: entry.score,
+                    avatar: entry.avatar || `https://i.pravatar.cc/150?u=${encodeURIComponent(entry.name)}`
+                });
+            }
+        });
+    
+        // Convert map back to array and sort by score
+        const rankings = Array.from(rankingsMap.values()).sort((a, b) => b.score - a.score);
+    
+        // Create podium for top 3
+        createPodium(rankings.slice(0, 3));
+    
+        // Create full rankings list
+        createRankingsList(rankings);
+    } catch (error) {
+        console.error("Failed to fetch rankings:", error);
+        rankingsList.innerHTML = '<p>Error loading rankings.</p>';
+    }
+    
 
 }
 
@@ -943,13 +943,13 @@ function createRankingsList(rankings) {
 
 // Add event listeners when the page loads
 document.addEventListener('DOMContentLoaded', async () => {
-  const userData = localStorage.getItem('user')
-  const user = JSON.parse(userData)   
+    const user = JSON.parse(localStorage.getItem("user"));
+    const username = user?.USERNAME;
 
   console.log(user.USERNAME);
 
   try {
-      const res = await fetch(`http://localhost:3000/classes?username=${encodeURIComponent(user.USERNAME)}`);
+      const res = await fetch(`http://localhost:3000/student-classes?username=${username}`);
       const classes = await res.json();
 
       const classListElement = document.getElementById('classList');
@@ -1266,7 +1266,7 @@ function confirmSignOut() {
   }
 
   async function showJoinedClasses() {
-    const user = JSON.parse(localStorage.getItem("user")); // if stored as object
+    const user = JSON.parse(localStorage.getItem("user"));
     const username = user?.USERNAME;
 
     const response = await fetch(`http://localhost:3000/student-classes?username=${username}`)
