@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Create Assignment | Learn Track</title>
+  <title>Create Activity | Learn Track</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
   <style>
     /* General styles */
@@ -15,7 +15,7 @@
       padding: 0;
     }
 
-    /* Assignment-specific styles */
+    /* Activity-specific styles */
     .assignment-form-container {
       max-width: 800px;
       margin: 20px auto;
@@ -145,28 +145,29 @@ img {
     <header class="content-header">
       <div class="header-container">
         <h2 class="header-h2">Workclass</h2>
-        <h1>Create Assignment</h1>
+        <h1>Create Activity</h1>
       </div>
     </header>
 
     <div class="content-body">
       <div class="assignment-form-container">
-        <form id="assignmentForm" onsubmit="event.preventDefault(); createAssignment()"></form>
+<form id="activityForm" onsubmit="event.preventDefault(); createActivity()">
+
           <div class="form-group">
             <label class="form-label" for="assignmentTitle">Title</label>
-            <input type="text" id="assignmentTitle" class="form-input" placeholder="Assignment title" required>
+            <input type="text" id="assignmentTitle" class="form-input" placeholder="Activity title" required>
           </div>
           
           <div class="form-group">
             <label class="form-label" for="assignmentInstructions">Instructions</label>
-            <textarea id="assignmentInstructions" class="form-textarea" placeholder="Provide instructions for this assignemnt..."></textarea>
+            <textarea id="assignmentInstructions" class="form-textarea" placeholder="Provide instructions for this activity..."></textarea>
             <div class="char-counter" id="instructionsCounter">0/5000 characters</div>
           </div>
           
           <div class="form-group">
             <label class="form-label">Due Date</label>
             <div class="due-date-container">
-              <input type="date" id="dueDate" class="form-input">
+              <input type="date" id="dueDate" class="form-input">   
               <input type="time" id="dueTime" class="form-input">
             </div>
           </div>
@@ -211,7 +212,8 @@ img {
           <div class="form-actions">
             <button type="button" class="modal-btn modal-btn-cancel" onclick="window.history.back()">Cancel</button>
             <button type="button" class="modal-btn modal-btn-draft" onclick="saveAsDraft()">Save as Draft</button>
-            <button type="button" class="modal-btn modal-btn-create" onclick="createAssignment()">Create Assignment</button>
+           <button type="button" class="modal-btn modal-btn-create" onclick="createActivity()">Create Activity</button>
+
           </div>
         </form>
       </div>
@@ -220,23 +222,41 @@ img {
 
   <script>
  
- document.addEventListener('DOMContentLoaded', function() {
-    const form = document.getElementById('assignmentForm');
-    
-    // Reset any old form data
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialize form
+    const form = document.getElementById('activityForm');
     form.reset();
     
-    // Add validation for the title field
-    document.getElementById('assignmentTitle').addEventListener('input', function() {
-        const submitBtn = document.querySelector('.modal-btn-create');
-        submitBtn.disabled = this.value.trim().length === 0;
-    });
-
     // Verify class code exists
     const classCode = localStorage.getItem('currentClassCode');
     if (!classCode) {
         alert('No class selected. Please try again.');
         window.history.back();
+    }
+
+    // Character counter for instructions
+    const instructionsTextarea = document.getElementById('assignmentInstructions');
+    const counter = document.getElementById('instructionsCounter');
+    
+    if (instructionsTextarea && counter) {
+        instructionsTextarea.addEventListener('input', function() {
+            const count = this.value.length;
+            counter.textContent = `${count}/5000 characters`;
+            if (count > 5000) {
+                counter.style.color = 'red';
+            } else {
+                counter.style.color = '#666';
+            }
+        });
+    }
+
+    // Title validation
+    const titleInput = document.getElementById('assignmentTitle');
+    const submitBtn = document.querySelector('.modal-btn-create');
+    if (titleInput && submitBtn) {
+        titleInput.addEventListener('input', function() {
+            submitBtn.disabled = this.value.trim().length === 0;
+        });
     }
 });
 
@@ -317,7 +337,7 @@ function createFilePreview(file) {
     }
     
 // Update the createAssignment function in assignment-form.html
-async function createAssignment() {
+async function createActivity() {
     const title = document.getElementById('assignmentTitle').value.trim();
     const instructions = document.getElementById('assignmentInstructions').value.trim();
     const dueDate = document.getElementById('dueDate').value;
@@ -327,54 +347,26 @@ async function createAssignment() {
     const gradeImmediately = document.getElementById('gradeImmediately').checked;
     const classCode = localStorage.getItem('currentClassCode');
 
-    // Validate inputs
+    if (!classCode) {
+        alert('Class context missing. Please return to class view.');
+        return;
+    }
+
     if (!title) {
-        showError('assignmentTitle', 'Title is required');
+        alert('Activity title is required.');
         return;
     }
 
-    if (isNaN(points)) {
-        showError('pointsPossible', 'Please enter a valid number');
-        return;
-    }
-
-    // Create due date string if provided
     let dueDateTime = null;
     if (dueDate && dueTime) {
-        const dueDateTimeString = `${dueDate}T${dueTime}`;  // Concatenate the date and time
-        dueDateTime = new Date(dueDateTimeString);
-        // Check if the constructed Date is valid
-        if (isNaN(dueDateTime.getTime())) {
-            console.error('Invalid date or time:', dueDateTimeString);
-            dueDateTime = null;
-        } else {
-            dueDateTime = dueDateTime.toISOString(); // Convert to ISO string
-        }
+        const dateTimeStr = `${dueDate}T${dueTime}`;
+        dueDateTime = new Date(dateTimeStr).toISOString();
     }
 
-    const base64Data = await getAttachmentsData()
+    // Get attachments data
+    const attachments = await getAttachmentsData();
 
-    // Log the dueDateTime to ensure correct formatting
-    console.log('Due Date AND TIME:', dueDateTime);
-    console.log(base64Data);
-
-    // Create assignment object
-    const assignment = {
-        id: Date.now().toString(),
-        classCode: classCode,
-        title: title,
-        instructions: instructions,
-        dueDate: dueDateTime,
-        pointsPossible: points,
-        allowLateSubmissions: allowLate,
-        gradeImmediately: gradeImmediately,
-        attachments: await getAttachmentsData(),
-        createdAt: new Date().toISOString(),
-        status: 'published',
-        type: 'assignment'
-    };
-
-    const assignmentData = {
+    const activity = {
         CLASS_CODE: classCode,
         TITLE: title,
         INSTRUCTIONS: instructions,
@@ -382,54 +374,54 @@ async function createAssignment() {
         POINTSPOSSIBLE: points,
         ALLOWLATESUBMISSIONS: allowLate,
         GRADEIMMEDIATELY: gradeImmediately,
-        ATTACHMENTS: base64Data,
+        ATTACHMENTS: attachments,
         CREATEDAT: new Date().toISOString(),
-        STATUS: 'submitted',
-        WORKCLASSTYPE: 'assignment'
+        STATUS: 'published',
+        WORKCLASSTYPE: 'activity'
     };
 
-    const response = await fetch('http://localhost:3000/create-workclass', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify(assignmentData)
-    });
-
     try {
-        // Save to localStorage
-        let workclasses = JSON.parse(localStorage.getItem('workclasses')) || [];
-        workclasses.push(assignment);
-        localStorage.setItem('workclasses', JSON.stringify(workclasses));
+        const response = await fetch('http://localhost:3000/create-workclass', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(activity)
+        });
 
-        // Update class reference
-        let classes = JSON.parse(localStorage.getItem('classes')) || [];
-        const classIndex = classes.findIndex(c => c.CLASS_CODE === classCode);
-        if (classIndex !== -1) {
-            if (!classes[classIndex].workclasses) {
-                classes[classIndex].workclasses = [];
-            }
-            classes[classIndex].workclasses.push(assignment.id);
-            localStorage.setItem('classes', JSON.stringify(classes));
+        if (!response.ok) {
+            throw new Error('Failed to create activity');
         }
 
-        showToast('Assignment created successfully!');
+        const result = await response.json();
+        showToast('Activity created successfully!', 'success');
         window.location.href = `professor.html?class=${classCode}`;
     } catch (error) {
         console.error('Error:', error);
-        showToast('Failed to create assignment: ' + error.message, 'error');
+        showToast('Failed to create activity: ' + error.message, 'error');
     }
 }
 
+
 function showError(fieldId, message) {
     const field = document.getElementById(fieldId);
-    const errorElement = document.getElementById(`${fieldId}Error`) || field.nextElementSibling;
-    
+    if (!field) return;
+
     field.style.borderColor = '#ff4444';
-    if (errorElement) {
-        errorElement.textContent = message;
-        errorElement.style.color = '#ff4444';
+    
+    // Create or update error message
+    let errorDiv = document.getElementById(`${fieldId}Error`);
+    if (!errorDiv) {
+        errorDiv = document.createElement('div');
+        errorDiv.id = `${fieldId}Error`;
+        errorDiv.className = 'error-message';
+        field.parentNode.insertBefore(errorDiv, field.nextSibling);
     }
+    
+    errorDiv.textContent = message;
+    errorDiv.style.color = '#ff4444';
+    errorDiv.style.fontSize = '12px';
+    errorDiv.style.marginTop = '5px';
 }
     
     // Reuse these functions from professor.js
@@ -450,24 +442,50 @@ function showError(fieldId, message) {
     }
 
     document.addEventListener('DOMContentLoaded', function() {
+    // Verify class code exists
+    const classCode = localStorage.getItem('currentClassCode');
+    if (!classCode) {
+        showToast('No class selected. Please try again.', 'error');
+        window.history.back();
+        return;
+    }
+
+    // Reset form
     const form = document.getElementById('assignmentForm');
+    if (form) {
+        form.reset();
+    }
+
+    // Add character counter for instructions
+    const instructionsTextarea = document.getElementById('activityInstructions');
+    const counter = document.getElementById('instructionsCounter');
     
-    // Reset any old form data
-    form.reset();
-    
-    // Remove the form submit event listener since we're using button onclick
-    
+    if (instructionsTextarea && counter) {
+        instructionsTextarea.addEventListener('input', function() {
+            const count = this.value.length;
+            counter.textContent = `${count}/5000 characters`;
+            if (count > 5000) {
+                counter.style.color = 'red';
+            } else {
+                counter.style.color = '#666';
+            }
+        });
+    }
+
     // Add validation for the title field
-    document.getElementById('assignmentTitle').addEventListener('input', function() {
-        const submitBtn = form.querySelector('.modal-btn-create');
-        submitBtn.disabled = this.value.trim().length === 0;
-    });
+    const titleInput = document.getElementById('activityTitle');
+    const submitBtn = document.querySelector('.modal-btn-create');
+    if (titleInput && submitBtn) {
+        titleInput.addEventListener('input', function() {
+            submitBtn.disabled = this.value.trim().length === 0;
+        });
+    }
 });
 
 
 // Add real-time validation
-document.getElementById('assignmentTitle').addEventListener('input', function() {
-    const submitBtn = document.getElementById('assignmentForm').querySelector('button[type="submit"]');
+document.getElementById('activityTitle').addEventListener('input', function() {
+    const submitBtn = document.getElementById('activityForm').querySelector('button[type="submit"]');
     submitBtn.disabled = this.value.trim().length === 0;
 });
 
@@ -490,19 +508,19 @@ function validateDueDate() {
 
 
 function saveAsDraft() {
-    const assignment = collectAssignmentData();
-    assignment.status = 'draft';
+    const activity = collectActivityData();
+    activity.status = 'draft';
     
     // Save to localStorage
-    let assignments = JSON.parse(localStorage.getItem('assignments')) || [];
-    assignments.push(assignment);
-    localStorage.setItem('assignments', JSON.stringify(assignments));
+    let activities = JSON.parse(localStorage.getItem('activities')) || [];
+    activities.push(activity);
+    localStorage.setItem('activities', JSON.stringify(activities));
     
     alert('Draft saved successfully!');
-    window.location.href = `professor.html?class=${assignment.classCode}`;
+    window.location.href = `professor.html?class=${activity.classCode}`;
 }
 
-function collectAssignmentData() {
+function collectActivityData() {
     const classCode = localStorage.getItem('currentClassCode');
     const title = document.getElementById('assignmentTitle').value.trim();
     const instructions = document.getElementById('assignmentInstructions').value.trim();
@@ -516,69 +534,131 @@ function collectAssignmentData() {
     
     return {
         id: Date.now(),
-        type: 'assignment',
+        type: 'activity',
         title,
         instructions,
         dueDate: dueDateTime ? dueDateTime.toISOString() : null,
         pointsPossible: parseInt(points),
         allowLateSubmissions: allowLate,
         gradeImmediately,
-        attachments: getAttachmentsData(),
+        attachments: [], // Will be added later if needed
         created: new Date().toISOString(),
         classCode
     };
 }
 
-function getAttachmentsData() {
+async function getAttachmentsData() {
     const fileInput = document.getElementById('fileUpload');
-    if (!fileInput.files || fileInput.files.length === 0) return Promise.resolve([]);
+    if (!fileInput.files || fileInput.files.length === 0) return [];
 
     const files = Array.from(fileInput.files);
+    const attachments = [];
 
-    const readFileAsBase64 = (file) => {
-        return new Promise((resolve, reject) => {
-            const reader = new FileReader();
-            reader.onload = () => {
-                resolve({
-                    name: file.name,
-                    type: file.type,
-                    size: file.size,
-                    lastModified: file.lastModified,
-                    base64Data: reader.result
-                });
-            };
-            reader.onerror = reject;
-            reader.readAsDataURL(file);
+    for (const file of files) {
+        const base64Data = await readFileAsBase64(file);
+        attachments.push({
+            name: file.name,
+            type: file.type,
+            size: file.size,
+            lastModified: file.lastModified,
+            base64Data: base64Data
         });
-    };
-
-    return Promise.all(files.map(readFileAsBase64));
-    
-}
-
-async function saveAssignment(assignment) {
-    // Get current workclasses
-    let workclasses = JSON.parse(localStorage.getItem('workclasses')) || [];
-    workclasses.push(assignment);
-    localStorage.setItem('workclasses', JSON.stringify(workclasses));
-    
-    // Update class reference
-    let classes = JSON.parse(localStorage.getItem('classes')) || [];
-    const classIndex = classes.findIndex(c => c.CLASS_CODE === assignment.classCode);
-    if (classIndex !== -1) {
-        if (!classes[classIndex].workclasses) {
-            classes[classIndex].workclasses = [];
-        }
-        classes[classIndex].workclasses.push(assignment.id);
-        localStorage.setItem('classes', JSON.stringify(classes));
     }
 
-    return assignment;
+    return attachments;
+}
+
+function saveAsDraft() {
+    const activity = collectActivityData();
+    activity.status = 'draft';
+    
+    // Save to localStorage
+    let activities = JSON.parse(localStorage.getItem('activities')) || [];
+    activities.push(activity);
+    localStorage.setItem('activities', JSON.stringify(activities));
+    
+    showToast('Draft saved successfully!', 'success');
+    window.location.href = `professor.html?class=${activity.classCode}`;
+}
+
+async function saveActivity(activity) {
+    try {
+        // Create activity in database
+        const response = await fetch('http://localhost:3000/create-workclass', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(activity)
+        });
+
+        if (!response.ok) {
+            throw new Error('Failed to create activity');
+        }
+
+        const result = await response.json();
+        
+        // Show success message
+        showToast('Activity created successfully!', 'success');
+        
+        // Redirect back to professor page with class code
+        window.location.href = `professor.html?class=${activity.classCode}`;
+
+    } catch (error) {
+        console.error('Error:', error);
+        showToast('Failed to create activity: ' + error.message, 'error');
+    }
 }
 
 function showToast(message, type = 'info') {
-    alert(message); // Simple alert fallback
+    const toast = document.createElement('div');
+    toast.className = `toast toast-${type}`;
+    toast.textContent = message;
+    
+    // Create toast container if it doesn't exist
+    let container = document.querySelector('.toast-container');
+    if (!container) {
+        container = document.createElement('div');
+        container.className = 'toast-container';
+        document.body.appendChild(container);
+    }
+    
+    container.appendChild(toast);
+    
+    // Show toast
+    setTimeout(() => toast.classList.add('show'), 100);
+    
+    // Remove toast
+    setTimeout(() => {
+        toast.classList.remove('show');
+        setTimeout(() => toast.remove(), 300);
+    }, 3000);
 }
+
+document.getElementById('activityForm').addEventListener('submit', function(e) {
+  e.preventDefault();
+
+  const activity = {
+    title: document.getElementById('title').value,
+    description: document.getElementById('description').value,
+    type: document.getElementById('type').value,
+    dueDate: document.getElementById('dueDate').value,
+  };
+
+  // Get existing activities
+  const activities = JSON.parse(localStorage.getItem('activities')) || [];
+
+  // Add new one
+  activities.push(activity);
+
+  // Save back to localStorage
+  localStorage.setItem('activities', JSON.stringify(activities));
+
+  alert('Activity saved!');
+  // Optionally redirect
+  window.location.href = 'professor.html';
+});
+
   </script>
 
   
