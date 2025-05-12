@@ -190,6 +190,10 @@ async function displayGrades() {
   const subjectAverages = {}; // For dashboard use
 
   try {
+    const user = JSON.parse(localStorage.getItem('user'));
+    userName = JSON.parse(localStorage.getItem('user'));
+    userName = user.USERNAME;
+
     const response = await fetch(`http://localhost:3000/show-student-grades?username=${userName}`);
     const gradesData = await response.json();
 
