@@ -963,11 +963,25 @@ function selectWorkclassType(type) {
   }
 
 function signOut() {
-    localStorage.clear();
-    alert("You have been signed out.");
-    window.location.href = "register.html";
+  document.getElementById('signOutModal').classList.add('show');
+  document.getElementById('signOutOverlay').classList.add('show');
 }
 
+
+function closeSignOutModal() {
+  document.getElementById('signOutModal').classList.remove('show');
+  document.getElementById('signOutOverlay').classList.remove('show');
+}
+
+function confirmSignOut() {
+  localStorage.removeItem('user');
+  showToast("Signed out successfully");
+
+  // Delay redirect to allow toast to appear
+  setTimeout(() => {
+    window.location.href = 'register.html';
+  }, 1500); // wait 1.5 seconds
+}
 
 // Add this function to handle tab switching
 function openClassTab(tabName) {
@@ -1229,7 +1243,7 @@ function displayWorkclassDetails(workclass) {
   function getWorkclassBadgeClass(type) {
     switch(type) {
       case 'assignment': return 'assignment-badge';
-      case 'quiz': return 'quiz-badge';
+      case 'activity': return 'activity-badge';
       case 'question': return 'question-badge';
       case 'material': return 'material-badge';
       default: return '';
@@ -1258,6 +1272,8 @@ function displayWorkclassDetails(workclass) {
     // Redirect based on type (remove quiz option)
     if (type === 'assignment') {
       window.location.href = 'assignment-form.html';
+    } else if (type === 'activity') {
+      window.location.href = 'activity-form.html';
     } else if (type === 'question') {
       window.location.href = 'question-form.html';
     } else if (type === 'material') {
@@ -2287,3 +2303,66 @@ function createWorkclass(data) {
   
   // Call this when page loads
   document.addEventListener('DOMContentLoaded', loadWorkclasses);
+
+  function showAddStudents() {
+  document.getElementById('inviteStudentModal').classList.add('show');
+  document.getElementById('inviteModalOverlay').classList.add('show');
+}
+
+function closeInviteModal() {
+  document.getElementById('inviteStudentModal').classList.remove('show');
+  document.getElementById('inviteModalOverlay').classList.remove('show');
+}
+
+async function sendStudentInvite() {
+  const name = document.getElementById('studentName').value.trim();
+  const email = document.getElementById('studentEmail').value.trim();
+  const classCode = document.getElementById('classCodeDisplay').textContent;
+
+  if (!name || !email || !/\S+@\S+\.\S+/.test(email)) {
+    alert("Please enter a valid name and email.");
+    return;
+  }
+
+  const payload = { name, email, classCode };
+
+  try {
+    const res = await fetch('http://localhost:3000/invite-student', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+
+    if (!res.ok) throw new Error("Failed to send invite");
+
+    alert("Invite sent successfully!");
+    closeInviteModal();
+  } catch (err) {
+    console.error(err);
+    alert("Failed to invite student.");
+  }
+}
+
+function showToast(message) {
+  const toast = document.createElement('div');
+  toast.className = 'toast';
+  toast.textContent = message;
+
+  document.getElementById('toastContainer').appendChild(toast);
+
+  setTimeout(() => {
+    toast.remove();
+  }, 3000);
+}
+
+// Toggle notification dropdown
+document.querySelector('.notification-button').addEventListener('click', function (event) {
+  event.stopPropagation(); // prevent closing immediately
+  document.getElementById('notificationDropdown').classList.toggle('show');
+});
+
+// Close dropdown when clicking outside
+window.addEventListener('click', function () {
+  document.getElementById('notificationDropdown').classList.remove('show');
+});
+

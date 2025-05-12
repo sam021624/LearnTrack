@@ -649,12 +649,11 @@ header {
 .error-message {
   color: #ff0000;
   font-size: 12px;
-  margin-top: 5px;
   display: block;
 }
 
 .form-group {
-  margin-bottom: 15px;
+  margin-bottom: 0px;
 }
 
 .password-container {
@@ -705,3 +704,4 @@ header {
   from {bottom: 30px; opacity: 1;}
   to {bottom: 0; opacity: 0;}
 }
+

@@ -15,10 +15,12 @@
       <img src="img/LearnTrackLogo.png" alt="LearnTrack Logo">
       <div class="icon-buttons">
         <!-- Notification Button -->
-        <button class="icon-button notification-button" aria-label="Notifications">
-          <i class="fas fa-bell"></i>
-          <span class="badge">2</span>
-        </button>
+        <div class="icon-button-wrapper">
+          <button class="icon-button notification-button" aria-label="Notifications">
+            <i class="fas fa-bell"></i>
+            <span class="badge">2</span>
+          </button>
+        </div>
 
         <!-- Profile Button -->
         <div class="profile-dropdown">
@@ -75,6 +77,18 @@
     <button class="hamburger-btn" onclick="toggleSidebar()">
       <i class="fas fa-bars"></i>
     </button>
+
+<div class="notification-dropdown" id="notificationDropdown">
+  <div class="dropdown-header">
+    <p>Notifications</p>
+  </div>
+  <div class="notification-items">
+    <div class="notification-item">📥 John Doe joined Class ABC123</div>
+    <div class="notification-item">📄 Jane Smith submitted Assignment 1 in CS101</div>
+    <div class="notification-item">✅ You graded Liam's quiz in Section B</div>
+    <div class="notification-item">⏰ Quiz 2 in CS101 is due tomorrow</div>
+  </div>
+</div>
 
     <!-- Join class button for students -->
     <button class="join-class-btn" onclick="openJoinClassModal()">
@@ -404,6 +418,19 @@
 
   <div id="modalOverlay" class="modal-overlay"></div>
 
+  <div class="modal" id="signOutModal">
+  <div class="modal-content">
+    <h3 class="modal-title">Confirm Sign Out</h3>
+    <p>Are you sure you want to sign out?</p>
+    <div class="modal-actions">
+      <button class="modal-btn modal-btn-cancel" onclick="closeSignOutModal()">Cancel</button>
+      <button class="modal-btn modal-btn-create" onclick="confirmSignOut()">Sign Out</button>
+    </div>
+  </div>
+</div>
+<div class="modal-overlay" id="signOutOverlay"></div>
+
+<div id="toastContainer" class="toast-container"></div>
 
   <script src="student.js" defer></script>
 

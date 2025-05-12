@@ -764,42 +764,8 @@ if (fileInput) {
       });
   }
 
-  // -- upload attachment but hidden for now.
-  // function loadSubmission(workclassId, username) {
-  //   const url = `http://localhost:3000/get-submission/${encodeURIComponent(workclassId)}/${encodeURIComponent(username)}`;
-    
-  //   fetch(url)
-  //     .then(res => res.json())
-  //     .then(data => {
-  //       if (!data.base64Data) {
-  //         alert("No file found.");
-  //         return;
-  //       }
-  
-  //       const viewer = document.getElementById('pdfViewer'); // Could rename to something more generic like 'fileViewer'
-  //       if (!viewer) {
-  //         console.error("Viewer element not found.");
-  //         return;
-  //       }
-  
-  //       if (data.fileType === 'pdf') {
-  //         viewer.src = data.base64Data;
-  //       } else if (data.fileType === 'docx') {
-  //         const link = document.createElement('a');
-  //         link.href = data.base64Data;
-  //         link.download = 'submission.docx';
-  //         link.click();
-  //       } else {
-  //         alert("Unsupported file type.");
-  //       }
-  //     })
-  //     .catch(err => {
-  //       console.error("Error loading file:", err);
-  //     });
-  // }
-  
-  
-  
+
+   
   async function updateDashboardCounts() {
     // Update basic counts from local studentData
     document.getElementById('course-count').textContent = userClasses.length;
@@ -1089,11 +1055,20 @@ document.addEventListener('DOMContentLoaded', function() {
   }
   
   function signOut() {
-    localStorage.clear();
-    alert("You have been signed out.");
-    window.location.href = "register.html";
-  }
-  
+  document.getElementById('signOutModal').classList.add('show');
+  document.getElementById('signOutOverlay').classList.add('show');
+}
+
+  function closeSignOutModal() {
+  document.getElementById('signOutModal').classList.remove('show');
+  document.getElementById('signOutOverlay').classList.remove('show');
+}
+
+function confirmSignOut() {
+  localStorage.removeItem('user');
+  window.location.href = 'register.html'; // or your login/homepage
+}
+
   function showLoading() {
     const overlay = document.getElementById('loadingOverlay');
     if (overlay) {
@@ -1526,3 +1501,25 @@ async function openClassPage(classData) {
   loadClassWork();
 }
 
+// Toggle notification dropdown
+document.querySelector('.notification-button').addEventListener('click', function (event) {
+  event.stopPropagation(); // prevent closing immediately
+  document.getElementById('notificationDropdown').classList.toggle('show');
+});
+
+// Close dropdown when clicking outside
+window.addEventListener('click', function () {
+  document.getElementById('notificationDropdown').classList.remove('show');
+});
+
+function showToast(message) {
+  const toast = document.createElement('div');
+  toast.className = 'toast';
+  toast.textContent = message;
+
+  document.getElementById('toastContainer').appendChild(toast);
+
+  setTimeout(() => {
+    toast.remove();
+  }, 3000);
+}
