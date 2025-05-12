@@ -659,6 +659,7 @@ async function loadClassWork() {
         </div>
       </div>
     `;
+    
     const fileInput = document.getElementById('workSubmission');
 if (fileInput) {
   fileInput.addEventListener('change', (e) => {
@@ -669,9 +670,9 @@ if (fileInput) {
         <div class="file-item">
           <i class="fas fa-file-alt"></i>
           <span>${file.name}</span>
-          <button class="remove-file" onclick="">
-            <i class="fas fa-times"></i>
-          </button>
+        <button class="remove-file" onclick="removeFile()">
+          <i class="fas fa-times"></i>
+        </button>
         </div> `
       ;
       document.getElementById('submitBtn').disabled = false;
@@ -679,6 +680,24 @@ if (fileInput) {
   });
 }
   }
+
+  function removeFile() {
+  // Clear the file input
+  const fileInput = document.getElementById('workSubmission');
+  if (fileInput) {
+    fileInput.value = '';
+  }
+  // Clear the file list display
+  const fileList = document.getElementById('submissionFileList');
+  if (fileList) {
+    fileList.innerHTML = '';
+  }
+  // Disable the submit button again
+  const submitBtn = document.getElementById('submitBtn');
+  if (submitBtn) {
+    submitBtn.disabled = true;
+  }
+}
   
   // Helper function to get the correct file icon based on file type
   function getFileIcon(fileType) {
@@ -806,7 +825,7 @@ if (fileInput) {
     document.getElementById('active-course-count').textContent = userClasses.length;
   
     // Still static for now, unless you implement grade tracking
-    document.getElementById('average-grade').textContent = '88%';
+    document.getElementById('average-grade').textContent = '0%';
   
     try {
 

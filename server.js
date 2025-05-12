@@ -632,15 +632,29 @@ app.post("/create-class", async (req, res) => {
 });
 
 app.post("/create-announcements", async (req, res) => {
-    const { CLASS_CODE, NAME, EMAIL, CONTENT, DATE } = req.body;
+    const { CLASS_CODE, USERNAME, EMAIL, CONTENT, DATE } = req.body;
 
     try {
         const database = client.db(dbName);
+        const teachers = database.collection("LT_Teachers");
+
+        // Find the professor's full name using USERNAME or EMAIL
+        const teacher = await teachers.findOne({
+            $or: [
+                { USERNAME: USERNAME },
+                { EMAIL: EMAIL }
+            ]
+        });
+
+        if (!teacher) {
+            return res.status(404).json({ message: "Professor not found." });
+        }
+
         const collection = database.collection("LT_Announcement");
 
         await collection.insertOne({
             CLASS_CODE,
-            NAME,
+            NAME: teacher.FULL_NAME, // Use the full name from the database
             EMAIL,
             CONTENT,
             DATE,
@@ -650,6 +664,28 @@ app.post("/create-announcements", async (req, res) => {
     } catch (error) {
         console.error(error);
         res.status(500).send('Error saving announcement to database.');
+    }
+});
+
+app.delete('/delete-announcement/:id', async (req, res) => {
+    const { id } = req.params;
+    const db = client.db(dbName);
+
+    if (!ObjectId.isValid(id)) {
+        return res.status(400).json({ message: 'Invalid announcement ID.' });
+    }
+
+    try {
+        const result = await db.collection('LT_Announcement').deleteOne({ _id: new ObjectId(id) });
+
+        if (result.deletedCount === 1) {
+            res.status(200).json({ message: 'Announcement deleted successfully.' });
+        } else {
+            res.status(404).json({ message: 'Announcement not found.' });
+        }
+    } catch (error) {
+        console.error('Error deleting announcement:', error);
+        res.status(500).json({ message: 'Server error while deleting announcement.' });
     }
 });
 
@@ -696,6 +732,17 @@ app.post("/create-workclass", async (req, res) => {
 
     try {
         const db = client.db(dbName);
+
+        // --- DUPLICATE CHECK ---
+        // const duplicate = await db.collection("LT_Workclasses").findOne({
+        //     CLASS_CODE,
+        //     TITLE,
+        //     WORKCLASSTYPE
+        // });
+        // if (duplicate) {
+        //     return res.status(409).json({ error: "A workclass with this title and type already exists in this class." });
+        // }
+        // --- END DUPLICATE CHECK ---
 
         // Fetch students in the class
         const classDoc = await db.collection("LT_Classes").findOne({ CLASS_CODE });
@@ -758,6 +805,27 @@ app.post("/create-workclass", async (req, res) => {
         res.status(500).send("Error saving workclass to database.");
     }
 });
+
+    app.delete('/delete-workclass/:classCode/:workclassId', async (req, res) => {
+        const { classCode, workclassId } = req.params;
+        const db = client.db(dbName);
+
+        try {
+            const result = await db.collection('LT_Workclasses').deleteOne({
+                _id: new ObjectId(workclassId),
+                CLASS_CODE: classCode
+            });
+
+            if (result.deletedCount === 1) {
+                res.status(200).json({ message: 'Workclass deleted successfully.' });
+            } else {
+                res.status(404).json({ message: 'Workclass not found.' });
+            }
+        } catch (error) {
+            console.error('Error deleting workclass:', error);
+            res.status(500).json({ message: 'Server error while deleting workclass.' });
+        }
+    });
 
 
 
@@ -1073,6 +1141,8 @@ app.get("/student-classes", async (req, res) => {
         res.status(500).json({ message: "Failed to fetch classes" });
     }
 });
+
+
 
 
 

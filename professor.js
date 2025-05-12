@@ -110,6 +110,10 @@ document.addEventListener('DOMContentLoaded', function () {
     updateStudentCount();
     fetchProfilePicture(userName);
 
+        document.getElementById('sortFeed').addEventListener('change', function() {
+        loadAnnouncements(announcementData);
+    });
+
     // Set up modal button
     document.querySelector('.modal-btn-create').addEventListener('click', createClass);
 
@@ -319,7 +323,7 @@ async function renderClasses() {
             // Pass the class object directly to openClassPage when the class card is clicked
             classBox.querySelector('.class-info').addEventListener('click', async () => {
                 openClassPage(cls); // Pass the full class object to openClassPage
-                const announcementData = await fetchAnnouncements(cls.CLASS_CODE); // Get announcements
+                announcementData = await fetchAnnouncements(cls.CLASS_CODE);
                 loadAnnouncements(announcementData); // Load announcements into the UI
             });
 
@@ -573,51 +577,27 @@ async function postAnnouncement() {
         return;
     }
 
-    // Create announcement object
-    const announcement = {
-        id: Date.now(),
-        author: 'You',
-        date: new Date().toLocaleString(),
-        content: text,
-        attachment: fileInput.files[0] ? {
-            name: fileInput.files[0].name,
-            type: fileInput.files[0].type,
-            size: fileInput.files[0].size,
-            url: URL.createObjectURL(fileInput.files[0]) // For local files
-        } : null,
-        link: fileNameDisplay !== 'No file chosen' && !fileInput.files[0] ? fileNameDisplay : null
-    };
-
-    // Save to localStorage
+    // Prepare announcement data for backend
     const classCode = document.getElementById('classCodeDisplay').textContent;
-    const announcements = JSON.parse(localStorage.getItem(`announcements_${classCode}`)) || [];
-    announcements.unshift(announcement);
-    localStorage.setItem(`announcements_${classCode}`, JSON.stringify(announcements));
-
-    // FOR DB
     const newAnnouncement = {
         CLASS_CODE: classCode,
         NAME: userName,
         EMAIL: userEmail,
         CONTENT: text,
         DATE: new Date().toLocaleString(),
-    }
+        // Add attachment/link handling here if your backend supports it
+    };
 
-    createAnnouncement(newAnnouncement)
-    .then(result => {
-        console.log(result.message); // success message
+    try {
+        await createAnnouncement(newAnnouncement);
         alert("Announcement posted!");
-    })
-    .catch(error => {
+        // Always fetch from backend after posting
+        await loadAnnouncementsFromBackend();
+        resetForm();
+    } catch (error) {
         console.error(error);
         alert("Failed to post announcement.");
-    });
-
-    announcementData = await fetchAnnouncements(classCode);
-
-    // Refresh announcements
-    loadAnnouncements(announcementData);
-    resetForm();
+    }
 }
 
 // Update the loadAnnouncements function to display links
@@ -637,16 +617,21 @@ function loadAnnouncements(announcementData) {
     const sortedAnnouncements = [...announcementData];
 
     sortedAnnouncements.sort((a, b) => {
-        const idA = a.id || 0;
-        const idB = b.id || 0;
-        return sortBy === 'newest' ? idB - idA : idA - idB;
+        // Parse the DATE field as a Date object for comparison
+        const dateA = new Date(a.DATE);
+        const dateB = new Date(b.DATE);
+        if (sortBy === 'newest') {
+            return dateB - dateA; // Newest first
+        } else {
+            return dateA - dateB; // Oldest first
+        }
     });
 
-    // Display announcements
-    sortedAnnouncements.forEach(announcement => {
-        const announcementElement = document.createElement('div');
-        announcementElement.className = 'announcement-card card';
-        announcementElement.dataset.id = announcement.id || ''; // Safe fallback
+// Display announcements
+sortedAnnouncements.forEach(announcement => {
+    const announcementElement = document.createElement('div');
+    announcementElement.className = 'announcement-card card';
+    announcementElement.dataset.id = announcement._id || announcement.id || ''; // Use MongoDB _id as fallback
 
         let announcementHTML = `
             <div class="announcement-header">
@@ -657,9 +642,9 @@ function loadAnnouncements(announcementData) {
                     <div class="announcement-author">${announcement.NAME}</div>
                     <div class="announcement-date">${announcement.DATE}</div>
                 </div>
-                <button class="delete-btn" onclick="deleteAnnouncement(${announcement.NAME})">
-                    <i class="fas fa-trash"></i>
-                </button>
+            <button class="delete-btn" onclick="deleteAnnouncement('${announcement._id}')">
+                <i class="fas fa-trash"></i>
+            </button>
             </div>
             <div class="announcement-content">
         `;
@@ -692,27 +677,46 @@ function loadAnnouncements(announcementData) {
     });
 }
 
+    async function deleteAnnouncement(id) {
+        if (!id) return;
+
+        if (!confirm("Are you sure you want to delete this announcement?")) return;
+
+        try {
+            const response = await fetch(`http://localhost:3000/delete-announcement/${id}`, {
+                method: 'DELETE'
+            });
+
+            if (response.ok) {
+                // Remove the announcement from the UI by reloading from the backend
+                loadAnnouncementsFromBackend();
+            } else {
+                const data = await response.json();
+                alert(data.message || "Failed to delete announcement.");
+            }
+        } catch (error) {
+            alert("Server error while deleting announcement.");
+            console.error(error);
+        }
+    }
+
+    async function loadAnnouncementsFromBackend() {
+    const classCode = document.getElementById('classCodeDisplay').textContent;
+    try {
+        const response = await fetch(`http://localhost:3000/show-announcements?CLASS_CODE=${classCode}`);
+        const announcements = await response.json();
+        loadAnnouncements(announcements); // This should render the list
+    } catch (error) {
+        console.error("Error loading announcements:", error);
+    }
+}
+
 // Reset form after posting
 function resetForm() {
     document.getElementById('announcementText').value = '';
     document.getElementById('fileUpload').value = '';
     document.getElementById('fileName').textContent = 'No file chosen';
     document.getElementById('fileName').classList.remove('has-file');
-}
-
-// Delete announcement function
-function deleteAnnouncement(id) {
-    const classCode = document.getElementById('classCodeDisplay').textContent;
-    let announcements = JSON.parse(localStorage.getItem(`announcements_${classCode}`)) || [];
-
-    // Filter out the announcement with the given ID
-    announcements = announcements.filter(announcement => announcement.id !== id);
-
-    // Save updated announcements to localStorage
-    localStorage.setItem(`announcements_${classCode}`, JSON.stringify(announcements));
-
-    // Reload announcements
-    loadAnnouncements();
 }
 
 function getFileIcon(fileType) {
@@ -1288,35 +1292,42 @@ document.addEventListener('click', function(e) {
 });
 
 
-function deleteWorkclass(workclassId) {
+async function deleteWorkclass(classCode, workclassId) {
   if (!confirm("Are you sure you want to delete this Workclass?")) return;
 
-  // Get the current list of workclasses
-  let workclasses = JSON.parse(localStorage.getItem('workclasses')) || [];
+  try {
+    const response = await fetch(`http://localhost:3000/delete-workclass/${classCode}/${workclassId}`, {
+      method: 'DELETE'
+    });
 
-  // Filter out the one you want to delete
-  workclasses = workclasses.filter(wc => wc.id !== workclassId);
-
-  // Save the updated list
-  localStorage.setItem('workclasses', JSON.stringify(workclasses));
-
-  // Also update the related class's workclasses
-  let classes = JSON.parse(localStorage.getItem('classes')) || [];
-  const classCode = localStorage.getItem('currentClassCode');
-  const classIndex = classes.findIndex(c => c.CLASS_CODE === classCode);
-
-  if (classIndex !== -1) {
-    classes[classIndex].workclasses = classes[classIndex].workclasses.filter(id => id !== workclassId);
-    localStorage.setItem('classes', JSON.stringify(classes));
+    if (response.ok) {
+      showToast('Workclass deleted successfully!', 'success');
+      await renderClassWorkclasses(); // Refresh the workclass list from backend
+    } else {
+      const data = await response.json();
+      showToast(data.message || 'Failed to delete workclass.', 'error');
+    }
+  } catch (error) {
+    showToast('Server error while deleting workclass.', 'error');
+    console.error(error);
   }
-
-  // Show success message
-  showToast('Workclass deleted successfully!', 'success');
-
-  // Refresh the page or re-render workclasses
-  loadWorkclasses();
 }
 
+  // Also update the related class's workclasses
+//   let classes = JSON.parse(localStorage.getItem('classes')) || [];
+//   const classCode = localStorage.getItem('currentClassCode');
+//   const classIndex = classes.findIndex(c => c.CLASS_CODE === classCode);
+
+//   if (classIndex !== -1) {
+//     classes[classIndex].workclasses = classes[classIndex].workclasses.filter(id => id !== workclassId);
+//     localStorage.setItem('classes', JSON.stringify(classes));
+//   }
+
+//   // Show success message
+//   showToast('Workclass deleted successfully!', 'success');
+
+//   // Refresh the page or re-render workclasses
+//   loadWorkclasses();
 
 function initializeResponsiveLayout() {
     const hamburgerBtn = document.querySelector('.hamburger-btn');

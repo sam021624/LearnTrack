@@ -2127,6 +2127,7 @@ color: #1976d2;
 }
 
 .submission-status.assigned {
+  background: #eaf1fb;
   color: #007bff;
   font-weight: bold;
 }
