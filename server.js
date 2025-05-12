@@ -441,7 +441,7 @@ app.get('/rankings/:classCode', async (req, res) => {
 });
 
 // Run every 5 minutes
-cron.schedule('*/5 * * * *', async () => {
+cron.schedule('* * * * *', async () => {
     //console.log("Checking all workclasses for upcoming reminders...");
 
     try {
@@ -495,11 +495,10 @@ app.post("/send-email-due-soon", async (req, res) => {
         const db = client.db(dbName);
 
 
-        const newDueDate = new Date(Date.now() + 24 * 60 * 60 * 1000);
-        const workclassDoc = await db.collection("LT_Workclasses").updateOne(
-            { _id: objectId, CLASS_CODE: classCode },
-            { $set: { DUEDATE: newDueDate } }
-        );
+        const workclassDoc = await db.collection("LT_Workclasses").findOne({
+            _id: objectId,
+            CLASS_CODE: classCode
+        });
 
         if (!workclassDoc) {
             return res.status(404).json({ error: "Workclass not found." });
@@ -509,18 +508,16 @@ app.post("/send-email-due-soon", async (req, res) => {
         const now = new Date();
         const minutesUntilDue = Math.floor((dueDate - now) / (1000 * 60));
 
-        // console.log(`Now: ${now}`);
-        // console.log(`Due: ${dueDate}`);
-        // console.log(`Minutes until due: ${minutesUntilDue}`);
+        console.log(`Now: ${now}`);
+        console.log(`Due: ${dueDate}`);
+        console.log(`Minutes until due: ${minutesUntilDue}`);
 
         // Check if the remaining time is exactly 1080, 720, 360, or 180 minutes
-        const allowedMinutes = [1440, 1080, 720, 360, 180];
-        const isReminderTime = allowedMinutes.some(m => 
-            minutesUntilDue >= m && minutesUntilDue < m + 1
-        );
-        if (!isReminderTime) {
-        return res.status(200).json({ message: "No reminder needed at this time." });
+        const allowedMinutes = [1080, 720, 360, 180];
+        if (!allowedMinutes.includes(minutesUntilDue)) {
+            return res.status(200).json({ message: "No reminder needed at this time." });
         }
+
 
 
         // Derive interval in hours
