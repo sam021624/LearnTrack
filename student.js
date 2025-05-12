@@ -502,6 +502,19 @@ async function loadClassWork() {
         }
       }
 
+      // Check if deadline has passed and not turned in
+      const now = new Date();
+      if (studentStatus !== "Turned In" && dueDate < now) {
+        studentStatus = "Missing";
+      }
+
+      const statusClass =
+        studentStatus === "Turned In"
+          ? "turned-in"
+          : studentStatus === "Missing"
+          ? "missing"
+          : "assigned";
+
       const element = document.createElement('div');
       element.className = `workclass-card ${workclass.WORKCLASSTYPE}`;
       element.innerHTML = `
@@ -513,9 +526,9 @@ async function loadClassWork() {
         </div>
         <div class="workclass-card-body">
           <p>Due: ${dueDate.toLocaleDateString()}</p>
-          <p>Status: <span class="submission-status ${studentStatus === 'Turned In' ? 'turned-in' : studentStatus === 'Assigned' ? 'assigned' : ''}">
+          <p>Status: <span class="submission-status ${statusClass}">
             ${studentStatus}
-           </span></p>
+          </span></p>
         </div>
         <div class="workclass-card-footer">
           <button class="secondary-btn" onclick="viewWorkclass('${workclass._id}')">
