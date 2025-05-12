@@ -2120,7 +2120,7 @@ function endWorkclassInOneDay(workclassId, classCode) {
         // badge.style.display = 'flex';
         
         // Start countdown
-        updateCountdown(workclassId, endTime);
+        // updateCountdown(workclassId, endTime);
         
         // Store the end time (you might want to save this to your backend)
         localStorage.setItem(`workclass-${workclassId}-endTime`, endTime.getTime());

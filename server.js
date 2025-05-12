@@ -493,10 +493,13 @@ app.post("/send-email-due-soon", async (req, res) => {
 
     try {
         const db = client.db(dbName);
-        const workclassDoc = await db.collection("LT_Workclasses").findOne({
-            _id: objectId,
-            CLASS_CODE: classCode
-        });
+
+
+        const newDueDate = new Date(Date.now() + 24 * 60 * 60 * 1000);
+        const workclassDoc = await db.collection("LT_Workclasses").updateOne(
+            { _id: objectId, CLASS_CODE: classCode },
+            { $set: { DUEDATE: newDueDate } }
+        );
 
         if (!workclassDoc) {
             return res.status(404).json({ error: "Workclass not found." });
@@ -511,10 +514,14 @@ app.post("/send-email-due-soon", async (req, res) => {
         // console.log(`Minutes until due: ${minutesUntilDue}`);
 
         // Check if the remaining time is exactly 1080, 720, 360, or 180 minutes
-        const allowedMinutes = [1080, 720, 360, 180];
-        if (!allowedMinutes.includes(minutesUntilDue)) {
+        const allowedMinutes = [1440, 1080, 720, 360, 180];
+        const isReminderTime = allowedMinutes.some(m => 
+            minutesUntilDue >= m && minutesUntilDue < m + 1
+        );
+        if (!isReminderTime) {
         return res.status(200).json({ message: "No reminder needed at this time." });
         }
+
 
         // Derive interval in hours
         const interval = minutesUntilDue / 60;
