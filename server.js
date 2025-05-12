@@ -587,6 +587,94 @@ app.post("/send-email-due-soon", async (req, res) => {
     }
 });
 
+app.post("/send-email-in-one-day", async (req, res) => {
+    const { workclassId, classCode } = req.body;
+
+    if (!workclassId || !classCode) {
+        return res.status(400).json({ error: "Missing required fields." });
+    }
+
+    let objectId;
+    try {
+        objectId = new ObjectId(workclassId);
+    } catch (e) {
+        console.error("Invalid ObjectId:", workclassId);
+        return res.status(400).json({ error: "Invalid workclassId format." });
+    }
+
+    try {
+        const db = client.db(dbName);
+
+        const workclassDoc = await db.collection("LT_Workclasses").findOne({
+            _id: objectId,
+            CLASS_CODE: classCode
+        });
+
+        const newDueDate = new Date(Date.now() + 24 * 60 * 60 * 1000);
+        const updateResult = await db.collection("LT_Workclasses").updateOne(
+            { _id: objectId, CLASS_CODE: classCode },
+            { $set: { DUEDATE: newDueDate } }
+        );
+
+        if (updateResult.matchedCount === 0) {
+            return res.status(404).json({ error: "Workclass not found or class code mismatch." });
+        }
+
+        if (!workclassDoc) {
+            return res.status(404).json({ error: "Workclass not found." });
+        }
+
+        const title = workclassDoc.TITLE;
+        const dueDate = new Date(workclassDoc.DUEDATE);
+
+        const subject = `Reminder: ${title} is ending in 24 hrs!`;
+
+
+        const classDoc = await db.collection("LT_Classes").findOne({ CLASS_CODE: classCode });
+
+        if (!classDoc || !Array.isArray(classDoc.STUDENTS)) {
+            return res.status(404).json({ error: "No students found for this class." });
+        }
+        
+        const className = classDoc.CLASS_NAME || classCode; // fallback if name is missing
+        const message = `Dear students, the workclass "${title}" in your class "${className}" is due on ${newDueDate.toLocaleString()}. Please make sure to submit it on time!`;
+
+        console.log("Class document:", classDoc);
+
+        const usernames = classDoc.STUDENTS.map(student => student.USERNAME).filter(Boolean);
+
+        if (usernames.length === 0) {
+            return res.status(404).json({ error: "No student usernames found." });
+        }
+
+        const users = await db.collection("LT_Students").find({ USERNAME: { $in: usernames } }).toArray();
+        const emails = users.map(u => u.EMAIL).filter(Boolean);
+
+        if (emails.length === 0) {
+            return res.status(404).json({ error: "No valid student emails found." });
+        }
+
+        await Promise.all(
+            emails.map(email =>
+                transporter.sendMail({
+                    from: '"Learn Track" <learntrackdb@gmail.com>',
+                    to: email,
+                    subject,
+                    text: message,
+                }).catch(err => {
+                    console.error(`Failed to send email to ${email}:`, err);
+                })
+            )
+        );
+
+        res.status(200).json({ message: `Sent reminder about "${title}" to ${emails.length} students.` });
+
+    } catch (error) {
+        console.error("Error sending email:", error);
+        res.status(500).json({ error: "Server error." });
+    }
+});
+
 app.post("/join-class/:classCode/students", async (req, res) => {
     const { student } = req.body;
     const classCode = req.params.classCode;

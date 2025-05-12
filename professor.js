@@ -2138,7 +2138,7 @@ async function sendEndOfWorkclassEmailNotification(workclassId, classCode) {
     };
 
     try {
-        const response = await fetch('http://localhost:3000/send-email-due-soon', {
+        const response = await fetch('http://localhost:3000/send-email-in-one-day', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
