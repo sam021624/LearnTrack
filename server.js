@@ -1091,6 +1091,26 @@ app.get("/student-count", async (req, res) => {
     }
 });
 
+    app.get("/class-students/:classCode", async (req, res) => {
+        try {
+            const classCode = req.params.classCode;
+
+            const database = client.db(dbName);
+            const collection = database.collection("LT_Classes");
+
+            const cls = await collection.findOne({ CLASS_CODE: classCode });
+
+            if (!cls) {
+                return res.status(404).json({ message: "Class not found" });
+            }
+
+            res.json(cls.STUDENTS || []);
+        } catch (err) {
+            console.error("Error fetching class students:", err);
+            res.status(500).json({ message: "Failed to fetch students" });
+        }
+    });
+
 //STUDENT FUNCTIONALITIES
 // -- getting student classes
 app.get("/student-classes", async (req, res) => {

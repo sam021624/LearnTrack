@@ -17,6 +17,8 @@ const studentData = {
   let announcementData = [];
   let assignmentsCount = 0;
 
+  const defaultPicture = 'https://static.thenounproject.com/png/209914-200.png';
+
   document.addEventListener('DOMContentLoaded', function() {
     // Load user data
     const user = JSON.parse(localStorage.getItem('user'));
@@ -1475,13 +1477,10 @@ async function viewAllStudents() {
       studentCard.className = 'student-card';
       studentCard.innerHTML = `
         <div class="student-avatar">
-          <img src="${student.PROFILE_PICTURE || 'Picture/default-student.png'}" 
-               alt="${student.NAME}" 
-               onerror="this.src='Picture/default-student.png'">
+         <img src="https://static.thenounproject.com/png/209914-200.png" alt="${student.NAME}">
         </div>
         <div class="student-info">
           <h4 class="student-name">${student.NAME}</h4>
-          <p class="student-email">${student.EMAIL || ''}</p>
         </div>
       `;
       container.appendChild(studentCard);
@@ -1506,6 +1505,7 @@ async function viewAllStudents() {
   } finally {
     hideLoading();
   }
+  
 }
 
 function backToClassPage() {
@@ -1536,24 +1536,25 @@ async function openClassPage(classData) {
     const students = await response.json();
     
     // Update student count
-    document.querySelector('.student-count').textContent = `(${students.length})`;
-    
+    const studentCount = document.querySelector('.student-count');
+    if (studentCount) {
+      studentCount.textContent = `(${students.length})`;
+    }
+
     // Update student avatars
     const avatarsContainer = document.getElementById('studentAvatars');
     avatarsContainer.innerHTML = ''; // Clear existing avatars
     
-    // Display up to 5 student avatars
-    students.slice(0, 5).forEach(student => {
-      const avatar = document.createElement('div');
-      avatar.className = 'student-avatar';
-      avatar.innerHTML = `
-        <img src="${student.PROFILE_PICTURE || 'Picture/default-student.png'}" 
-             alt="${student.NAME}"
-             onerror="this.src='Picture/default-student.png'">
-      `;
-      avatarsContainer.appendChild(avatar);
-    });
-    
+      // Display up to 5 student avatars
+      students.slice(0, 5).forEach(student => {
+        const avatar = document.createElement('div');
+        avatar.className = 'student-avatar';
+        avatar.innerHTML = `
+          <img src="${defaultPicture}" alt="${student.NAME}">
+        `;
+        avatarsContainer.appendChild(avatar);
+      });
+          
     // Add "more" indicator if there are additional students
     if (students.length > 5) {
       const moreAvatars = document.createElement('div');
