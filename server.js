@@ -508,9 +508,9 @@ app.post("/send-email-due-soon", async (req, res) => {
         const now = new Date();
         const minutesUntilDue = Math.floor((dueDate - now) / (1000 * 60));
 
-        console.log(`Now: ${now}`);
-        console.log(`Due: ${dueDate}`);
-        console.log(`Minutes until due: ${minutesUntilDue}`);
+        // console.log(`Now: ${now}`);
+        // console.log(`Due: ${dueDate}`);
+        // console.log(`Minutes until due: ${minutesUntilDue}`);
 
         // Check if the remaining time is exactly 1080, 720, 360, or 180 minutes
         const allowedMinutes = [1080, 720, 360, 180];

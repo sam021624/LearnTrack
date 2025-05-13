@@ -115,7 +115,7 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 
     // Set up modal button
-    document.querySelector('.modal-btn-create').addEventListener('click', createClass);
+    // document.querySelector('.modal-btn-create').addEventListener('click', createClass);
 
     // Close dropdowns when clicking outside
     document.addEventListener('click', function (event) {
