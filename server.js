@@ -1211,6 +1211,58 @@ app.get("/student-workclasses-count/:username", async (req, res) => {
     }
 });
 
+app.post('/invite-student', async (req, res) => {
+    const { name, email, classCode } = req.body;
+
+    if (!name || !email || !classCode) {
+        return res.status(400).json({ error: "Missing required fields." });
+    }
+
+    try {
+        const db = client.db(dbName);
+
+        // 1. Find the student in LT_Students
+        const student = await db.collection("LT_Students").findOne({
+            FULL_NAME: name,
+            EMAIL: email
+        });
+
+        if (!student) {
+            return res.status(404).json({ error: "Student not found." });
+        }
+
+        // 2. Add student to the class's STUDENTS array if not already present
+        const classCollection = db.collection("LT_Classes");
+        const classDoc = await classCollection.findOne({ CLASS_CODE: classCode });
+
+        if (!classDoc) {
+            return res.status(404).json({ error: "Class not found." });
+        }
+
+        // Check if student already in class
+        const alreadyInClass = (classDoc.STUDENTS || []).some(s => s.EMAIL === email);
+
+        if (alreadyInClass) {
+            return res.status(409).json({ error: "Student already in this class." });
+        }
+
+        // Add student to class
+        await classCollection.updateOne(
+            { CLASS_CODE: classCode },
+            { $push: { STUDENTS: { 
+                USERNAME: student.USERNAME, 
+                NAME: student.FULL_NAME, // Add this line for compatibility
+                EMAIL: student.EMAIL 
+            } } }
+        );
+
+        res.status(200).json({ message: "Student added to class successfully." });
+    } catch (error) {
+        console.error("Error inviting student:", error);
+        res.status(500).json({ error: "Server error." });
+    }
+});
+
 app.delete('/delete-class/:classCode', async (req, res) => {
     const { classCode } = req.params;
     console.log("Attempting to delete class with CLASS_CODE:", classCode);

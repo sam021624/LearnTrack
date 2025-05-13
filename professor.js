@@ -747,7 +747,23 @@ function toggleProfileDropdown() {
 }
 
 // View All Students function
+// function viewAllStudents(students) {
+//     // Set the class title
+//     const className = document.getElementById('classNameDisplay').textContent;
+//     document.getElementById('allStudentsClassTitle').textContent = className;
+
+//     // Hide current page and show all students page
+//     document.getElementById('classPage').style.display = 'none';
+//     document.getElementById('allStudentsPage').style.display = 'block';
+
+//     // Render all students
+//     renderAllStudents(students);
+// }
+
 function viewAllStudents(students) {
+    // Use global currentStudents if students is not provided
+    students = students || currentStudents;
+
     // Set the class title
     const className = document.getElementById('classNameDisplay').textContent;
     document.getElementById('allStudentsClassTitle').textContent = className;
@@ -2330,13 +2346,13 @@ async function sendStudentInvite() {
       body: JSON.stringify(payload)
     });
 
-    if (!res.ok) throw new Error("Failed to send invite");
+    if (!res.ok) throw new Error("Failed to add Student");
 
-    alert("Invite sent successfully!");
+    alert("Student Added successfully!");
     closeInviteModal();
   } catch (err) {
     console.error(err);
-    alert("Failed to invite student.");
+    alert("Failed to add student.");
   }
 }
 

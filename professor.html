@@ -228,7 +228,7 @@
             <div>
               <div class="class-students-2">
                 <h4 class="studentsh4">Students <span class="student-count">(0)</span></h4>
-                <button class="view-all-btn" onclick="viewAllStudents()">
+                <button class="view-all-btn" onclick="viewAllStudents(currentStudents)">
                   <i class="fas fa-users"></i> View All
                 </button>
               </div>
@@ -519,12 +519,12 @@
 <!-- Invite Student Modal -->
 <div class="modal" id="inviteStudentModal">
   <div class="modal-content">
-    <h3 class="modal-title">Invite Student</h3>
+    <h3 class="modal-title">Add Student</h3>
     <input class="modal-input" type="text" id="studentName" placeholder="Student Full Name" required />
     <input class="modal-input" type="email" id="studentEmail" placeholder="Student Email" required />
     <div class="modal-actions">
       <button class="modal-btn modal-btn-cancel" onclick="closeInviteModal()">Cancel</button>
-      <button class="modal-btn modal-btn-create" onclick="sendStudentInvite()">Send Invite</button>
+      <button class="modal-btn modal-btn-create" onclick="sendStudentInvite()">Add Student</button>
     </div>
   </div>
 </div>
