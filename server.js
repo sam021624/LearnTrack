@@ -418,16 +418,29 @@ app.get('/rankings/:classCode', async (req, res) => {
 
     try {
         const database = client.db(dbName);
-        const collection = database.collection("LT_Grades");
+        const gradesCollection = database.collection("LT_Grades");
+        const usersCollection = database.collection("LT_Students"); // Adjust this if your user collection has a different name
 
         // Fetch grades for the given classCode
-        const records = await collection.find({ CLASSCODE: classCode }).toArray();
+        const records = await gradesCollection.find({ CLASSCODE: classCode }).toArray();
 
-        // Convert data into the expected format
+        // Collect all usernames to look up profile pictures in bulk
+        const usernames = records.map(r => r.STUDENT_USERNAME);
+        const users = await usersCollection
+            .find({ USERNAME: { $in: usernames } })
+            .toArray();
+
+        // Create a lookup table for quick access
+        const userMap = {};
+        users.forEach(user => {
+            userMap[user.USERNAME] = user.PROFILE_PICTURE || null; // base64 image expected
+        });
+
+        // Build rankings list with profile pictures
         const rankings = records.map(record => ({
             name: record.STUDENT_FULLNAME,
             score: record.GRADE,
-            // avatar: `https://i.pravatar.cc/150?u=${record.STUDENT_USERNAME}` // pseudo-random avatar
+            avatar: userMap[record.STUDENT_USERNAME] || null // base64 image if available
         }));
 
         // Sort by score descending
@@ -439,6 +452,7 @@ app.get('/rankings/:classCode', async (req, res) => {
         res.status(500).json({ message: 'Internal server error' });
     }
 });
+
 
 // Run every 5 minutes
 cron.schedule('* * * * *', async () => {
