@@ -51,12 +51,19 @@ app.post('/signup', async (req, res) => {
     const { FULLNAME, USERNAME, PASSWORD, EMAIL, ROLE } = req.body;
 
     try {
-
         const collection = ROLE === "Student" ? "LT_Students" : "LT_Teachers";
 
         const database = client.db(dbName);
         const accounts = database.collection(collection);
 
+        // Check if username already exists
+        const existingUser = await accounts.findOne({ USERNAME: USERNAME });
+
+        if (existingUser) {
+            return res.status(409).send('Username already exists. Please choose a different one.');
+        }
+
+        // Proceed to insert new user
         await accounts.insertOne({
             FULL_NAME: FULLNAME,
             USERNAME: USERNAME,

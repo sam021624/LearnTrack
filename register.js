@@ -189,6 +189,36 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     }
 
+    //Countdown for verification code
+    const sendButton = document.getElementById('send-verification-button');
+    let countdown = 60; // seconds
+
+    sendButton.addEventListener('click', () => {
+        sendVerificationCode();
+
+        // Disable button
+        sendButton.disabled = true;
+        let originalText = sendButton.textContent;
+        sendButton.textContent = `Resend in ${countdown}s`;
+
+        const interval = setInterval(() => {
+            countdown--;
+            sendButton.textContent = `Resend in ${countdown}s`;
+
+            if (countdown <= 0) {
+                clearInterval(interval);
+                sendButton.disabled = false;
+                sendButton.textContent = originalText;
+                countdown = 60; // reset for future use
+            }
+        }, 1000);
+    });
+
+    function sendVerificationCode() {
+        // Replace this with actual logic to send the code
+        console.log('Verification code sent');
+    }
+
     // Replace the togglePasswordIcons event listener section with:
 
 togglePasswordIcons.forEach(icon => {
