@@ -257,6 +257,8 @@ async function deleteClass(classCode) {
     const confirmDelete = confirm(`Are you sure you want to delete class with code: ${classCode}?`);
     if (!confirmDelete) return;
 
+    showLoading();
+
     try {
         const response = await fetch(`http://localhost:3000/delete-class/${classCode}`, {
             method: 'DELETE',
@@ -266,18 +268,14 @@ async function deleteClass(classCode) {
             throw new Error('Failed to delete class');
         }
 
-        const result = await response.json();
+        await response.json();
 
         // Refresh the class list after deletion
-        showLoading();
-        setTimeout(() => {
-            document.getElementById(section).style.display = 'block';
-            hideLoading();
-            renderClasses();
-
-        }, 500);
+        await renderClasses();
     } catch (error) {
         console.error('Error deleting class:', error);
+    } finally {
+        hideLoading();
     }
 }
 
