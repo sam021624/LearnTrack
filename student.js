@@ -31,11 +31,14 @@ const studentData = {
       document.getElementById('userEmailDisplay').textContent = user.EMAIL || 'student@example.com';
       
       studentData.name = user.NAME;
+      window.studentName = user.NAME; 
+
       studentData.email = user.EMAIL;
 
       userFullName = user.FULL_NAME
 
       userName = user.USERNAME;
+      window.userName = user.USERNAME; 
     }
 
     fetchProfilePicture(userName);
@@ -540,8 +543,12 @@ workclasses.forEach(workclass => {
       <button class="secondary-btn" onclick="viewWorkclass('${workclass._id}')">
         <i class="fas fa-eye"></i> View
       </button>
-    </div>
+        </div>
   `;
+
+  const viewButton = element.querySelector('.secondary-btn');
+  viewButton.addEventListener('click', () => viewWorkclass(workclass._id));
+
   container.appendChild(element);
 });
 
@@ -605,17 +612,23 @@ async function viewWorkclass(workclassId) {
   const data = await response.json();
 
   const w = data.workclass || {};
+  const submission = (w.SUBMISSIONS || []).find(
+  s => s.STUDENTUSERNAME === userName
+  );
 
   const workclass = {
     id: w._id || workclassId,
     title: w.title || 'Sample Workclass',
-    type: w.workclasstype || 'Assignment',
+    type: w.workclasstype || 'assignment',
     instructions: w.instructions || 'Complete the assigned readings and answer the questions.',
     dueDate: w.duedate ? new Date(w.duedate) : null,
     points: w.pointspossible ?? 'No Score',  // <-- Make sure the backend sends this as "pointspossible"
-    status: w.status || 'Assigned',
-    attachments: Array.isArray(data.attachments) ? data.attachments : []
-  };
+    status: (submission && (submission.STATUS === 'Turned In' || submission.SUBMITTED)) 
+           ? 'submitted' 
+           : 'assigned',
+    attachments: Array.isArray(data.attachments) ? data.attachments : [],
+    submission: submission || null
+};
 
   console.log("✅ Loaded workclass:", workclass); // Check what’s coming in
 
@@ -636,7 +649,7 @@ async function viewWorkclass(workclassId) {
           <h1>${workclass.title}</h1>
           <div class="workclass-meta">
             <span class="workclass-type">
-              <i class="fas ${workclass.type === 'Assignment' ? 'fa-book' : 'fa-question-circle'}"></i>
+              <i class="fas ${workclass.type === 'assignment' ? 'fa-book' : 'fa-question-circle'}"></i>
               ${workclass.type.charAt(0).toUpperCase() + workclass.type.slice(1)}
             </span>
             <span class="points">${workclass.points} Points</span>
@@ -676,7 +689,6 @@ async function viewWorkclass(workclassId) {
       : '<p class="no-attachments">No files attached</p>'}
   </div>
 </div>
-
   
           ${workclass.status === 'assigned' ? `
             <div class="submission-card">
@@ -715,7 +727,7 @@ async function viewWorkclass(workclassId) {
                   <div class="file-item">
                     <i class="fas fa-file-alt"></i>
                     <span>Your submission</span>
-                    <span class="submission-time">Submitted ${new Date().toLocaleString()}</span>
+                    <span class="submission-time" id="submissionTime">Submitted ${new Date(workclass.submission?.submittedAt).toLocaleString()}</div>
                   </div>
                 </div>
                 <div class="submission-actions">
@@ -799,70 +811,47 @@ async function viewWorkclass(workclassId) {
   }
   
   
-  function submitWork(workclassId) {
-    const fileInput = document.getElementById('workSubmission');
-  
-    if (!fileInput || !fileInput.files[0]) {
-      alert('Please select a file to submit');
-      return;
-    }
-  
-    const formData = new FormData();
-    formData.append('file', fileInput.files[0]);
-    formData.append('workclassId', workclassId);  
-    formData.append('studentUsername', userName);
-    formData.append('studentName', userFullName);
+async function submitWork(workclassId) {
+  const fileInput = document.getElementById('workSubmission');
+  const file = fileInput.files[0];
 
-  
-    showLoading();
-  
-    fetch('http://localhost:3000/submit-work', {
-      method: 'POST',
-      body: formData
-    })
-      .then(response => response.json())
-      .then(data => {
-        hideLoading();
-  
-        if (data.message === 'Work submitted successfully') {
-          showToast('Work submitted successfully!', 'success');
-  
-          const container = document.getElementById('classWorkclassesContainer');
-          container.innerHTML = `
-            <div class="workclass-detail-view">
-              <button class="back-btn" onclick="loadClassWork()">
-                <i class="fas fa-arrow-left"></i> Back to Classwork
-              </button>
-  
-              <div class="workclass-details card">
-                <div class="workclass-header">
-                  <h2>Work Submitted</h2>
-                </div>
-  
-                <div class="workclass-section">
-                  <p>Your work has been submitted successfully.</p>
-                  <p>Submitted file: ${fileInput.files[0].name}</p>
-                  <p>Submitted on: ${new Date().toLocaleString()}</p>
-                </div>
-  
-                <button class="primary-btn" onclick="loadClassWork()">
-                  <i class="fas fa-arrow-left"></i> Back to Classwork
-                </button>
-              </div>
-            </div>
-          `;
-
-        } else {
-          showToast(data.message || 'Failed to submit work', 'error');
-        }
-      })
-      .catch(error => {
-        hideLoading();
-        console.error('Upload error:', error);
-        showToast('Server error during submission.', 'error');
-      });
+  if (!file) {
+    alert("Please select a file to submit.");
+    return;
   }
 
+  const formData = new FormData();
+  formData.append("file", file);
+  formData.append("workclassId", workclassId);
+  formData.append("studentUsername", window.userName);
+  formData.append("studentName", window.studentName);
+
+  try {
+    const response = await fetch("http://localhost:3000/submit-work", {
+      method: "POST",
+      body: formData
+    });
+
+    const result = await response.json();
+
+    if (response.ok) {
+      // Handle success: Update the UI with submission success message
+      alert("Your work has been submitted successfully.");
+      // Optionally, update the submission status in the UI
+      const statusElement = document.querySelector('.submission-status');
+      if (statusElement) {
+        statusElement.textContent = 'Turned in';
+        statusElement.classList.remove('assigned');
+        statusElement.classList.add('turned-in');
+      }
+    } else {
+      alert(result.message || "There was an error submitting your work.");
+    }
+  } catch (error) {
+    console.error("Error submitting work:", error);
+    alert("An error occurred while submitting your work. Please try again.");
+  }
+}
 
    
   async function updateDashboardCounts() {
