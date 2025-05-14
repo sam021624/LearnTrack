@@ -597,7 +597,7 @@ async function loadClassWork() {
         title: w.title || 'Sample Workclass',
         type: w.type || 'assignment',
         instructions: w.instructions || 'Complete the assigned readings and answer the questions.',
-        dueDate: new Date(w.dueDate || Date.now() + 7 * 24 * 60 * 60 * 1000),
+        dueDate: new Date(w.duedate || Date.now() + 7 * 24 * 60 * 60 * 1000),
         points: w.points || 100,
         status: w.status || 'assigned',
         attachments: Array.isArray(data.attachments) ? data.attachments : []
