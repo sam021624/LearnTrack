@@ -498,7 +498,8 @@ async function loadClassWork() {
     }
 
     workclasses.forEach(workclass => {
-      const dueDate = new Date(workclass.DUEDATE || workclass.ENDDATETIME || workclass.STARTDATETIME || Date.now());
+      const rawDate = workclass.DUEDATE || workclass.ENDDATETIME || workclass.STARTDATETIME;
+      const dueDate = rawDate ? new Date(rawDate) : null;
 
       // Find this student's submission
       const submission = (workclass.SUBMISSIONS || []).find(
@@ -526,6 +527,10 @@ async function loadClassWork() {
           ? "missing"
           : "assigned";
 
+      const dueDateString = (dueDate instanceof Date && !isNaN(dueDate))
+      ? dueDate.toLocaleDateString()
+      : "No Due Date";
+
       const element = document.createElement('div');
       element.className = `workclass-card ${workclass.WORKCLASSTYPE}`;
       element.innerHTML = `
@@ -536,7 +541,7 @@ async function loadClassWork() {
           </span>
         </div>
         <div class="workclass-card-body">
-          <p>Due: ${dueDate.toLocaleDateString()}</p>
+          <p>Due: ${dueDateString}</p>
           <p>Status: <span class="submission-status ${statusClass}">
             ${studentStatus}
           </span></p>
