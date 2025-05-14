@@ -794,6 +794,19 @@ app.post("/create-announcements", async (req, res) => {
     }
 });
 
+app.get("/announcements/:classCode", async (req, res) => {
+    const { classCode } = req.params;
+    const collection = client.db(dbName).collection("LT_Announcement");
+
+    try {
+        const announcements = await collection.find({ CLASS_CODE: classCode }).toArray();
+        res.status(200).json(announcements);
+    } catch (error) {
+        console.error(error);
+        res.status(500).send('Error retrieving announcements.');
+    }
+ });
+
 app.delete('/delete-announcement/:id', async (req, res) => {
     const { id } = req.params;
     const db = client.db(dbName);
