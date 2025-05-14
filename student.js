@@ -307,8 +307,8 @@ function updateDashboardStats(subjectAverages) {
     ? Math.round((totalScore / totalMax) * 100)
     : 0;
 
-  document.getElementById('course-count').textContent = totalCourses;
-  document.getElementById('active-course-count').textContent = totalCourses;
+  document.getElementById('course-count').textContent = userClasses.length;
+  document.getElementById('active-course-count').textContent = userClasses.length;
   document.getElementById('assignments-due-count').textContent = "—"; // Optional: pending count logic later
   document.getElementById('average-grade').textContent = `${averageGrade}%`;
 }
@@ -740,8 +740,8 @@ async function viewWorkclass(workclassId) {
       </div>
     `;
     
-    const fileInput = document.getElementById('workSubmission');
-if (fileInput) {
+  const fileInput = document.getElementById('workSubmission');
+  if (fileInput) {
   fileInput.addEventListener('change', (e) => {
     const file = e.target.files[0];
     if (file) {
@@ -758,8 +758,8 @@ if (fileInput) {
       document.getElementById('submitBtn').disabled = false;
     }
   });
+ }
 }
-  }
 
   function removeFile() {
   // Clear the file input
