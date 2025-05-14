@@ -597,7 +597,7 @@ async function loadClassWork() {
         title: w.title || 'Sample Workclass',
         type: w.type || 'assignment',
         instructions: w.instructions || 'Complete the assigned readings and answer the questions.',
-        dueDate: new Date(w.duedate || Date.now() + 7 * 24 * 60 * 60 * 1000),
+        dueDate: w.duedate ? new Date(w.duedate) : new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
         points: w.points || 100,
         status: w.status || 'assigned',
         attachments: Array.isArray(data.attachments) ? data.attachments : []
@@ -612,6 +612,11 @@ async function loadClassWork() {
   
     // Update DOM based on the dynamic workclass data
     const container = document.getElementById('classWorkclassesContainer');
+
+    const dueDate = workclass.dueDate instanceof Date && !isNaN(workclass.dueDate)
+    ? `Due ${workclass.dueDate.toLocaleDateString()} at ${workclass.dueDate.toLocaleTimeString()}`
+    : 'Due date not set';
+
     container.innerHTML = `
       <div class="workclass-detail-view">
         <div class="workclass-header">
@@ -626,7 +631,7 @@ async function loadClassWork() {
                 ${workclass.type.charAt(0).toUpperCase() + workclass.type.slice(1)}
               </span>
               <span class="points">${workclass.points} points</span>
-              <span class="due-date">Due ${workclass.dueDate.toLocaleDateString()} at ${workclass.dueDate.toLocaleTimeString()}</span>
+              <span class="due-date">${dueDate}</span>
             </div>
           </div>
         </div>
