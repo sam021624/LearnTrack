@@ -415,13 +415,22 @@ function openClassPage(classData) {
     }
   }
 
+// Fetch announcements from the backend
+async function fetchAnnouncements(classCode) {
+  const res = await fetch(`/announcements/${classCode}`);
+  if (!res.ok) throw new Error('Failed to fetch announcements');
+  return await res.json();
+}
+
+// Load and display announcements
 async function loadAnnouncements(classCode) {
   const container = document.getElementById('announcementsList');
   container.innerHTML = ''; // Clear previous content
 
   try {
     // Fetch only announcements for the given classCode
-    announcementData = await fetchAnnouncements(classCode);
+    const announcementData = await fetchAnnouncements(classCode);
+    console.log(announcementData); // Optional: Debugging
 
     if (!announcementData.length) {
       document.getElementById('noAnnouncements').style.display = 'flex';
