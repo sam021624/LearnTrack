@@ -497,63 +497,54 @@ async function loadClassWork() {
       return;
     }
 
-    workclasses.forEach(workclass => {
-      const rawDate = workclass.DUEDATE || workclass.ENDDATETIME || workclass.STARTDATETIME;
-      const dueDate = rawDate ? new Date(rawDate) : null;
+workclasses.forEach(workclass => {
+  const rawDate = workclass.DUEDATE || workclass.ENDDATETIME || workclass.STARTDATETIME;
+  const dueDate = rawDate ? new Date(rawDate) : null;
 
-      // Find this student's submission
-      const submission = (workclass.SUBMISSIONS || []).find(
-        s => s.STUDENTUSERNAME === userName
-      );
+  // Attach DUEDATE as a Date for the helper functions
+  workclass.DUEDATE = dueDate;
 
-      // Determine status for this student
-      let studentStatus = "Assigned";
-      if (submission) {
-        if (submission.STATUS === "Turned In" || submission.SUBMITTED) {
-          studentStatus = "Turned In";
-        }
-      }
+  // Find this student's submission
+  const submission = (workclass.SUBMISSIONS || []).find(
+    s => s.STUDENTUSERNAME === userName
+  );
 
-      // Check if deadline has passed and not turned in
-      const now = new Date();
-      if (studentStatus !== "Turned In" && dueDate < now) {
-        studentStatus = "Missing";
-      }
+  // Determine STATUS for the helper functions
+  workclass.STATUS = (submission && (submission.STATUS === "Turned In" || submission.SUBMITTED))
+    ? "submitted"
+    : "assigned";
 
-      const statusClass =
-        studentStatus === "Turned In"
-          ? "turned-in"
-          : studentStatus === "Missing"
-          ? "missing"
-          : "assigned";
+  const studentStatus = getStatusText(workclass);
+  const statusClass = getStatusClass(workclass);
 
-      const dueDateString = (dueDate instanceof Date && !isNaN(dueDate))
-      ? dueDate.toLocaleDateString()
-      : "No Due Date";
+  const dueDateString = (dueDate instanceof Date && !isNaN(dueDate))
+    ? dueDate.toLocaleDateString()
+    : "No Due Date";
 
-      const element = document.createElement('div');
-      element.className = `workclass-card ${workclass.WORKCLASSTYPE}`;
-      element.innerHTML = `
-        <div class="workclass-card-header">
-          <h3 class="workclass-card-title">${workclass.TITLE}</h3>
-          <span class="workclass-card-type">
-            ${workclass.WORKCLASSTYPE.charAt(0).toUpperCase() + workclass.WORKCLASSTYPE.slice(1)}
-          </span>
-        </div>
-        <div class="workclass-card-body">
-          <p>Due: ${dueDateString}</p>
-          <p>Status: <span class="submission-status ${statusClass}">
-            ${studentStatus}
-          </span></p>
-        </div>
-        <div class="workclass-card-footer">
-          <button class="secondary-btn" onclick="viewWorkclass('${workclass._id}')">
-            <i class="fas fa-eye"></i> View
-          </button>
-        </div>
-      `;
-      container.appendChild(element);
-    });
+  const element = document.createElement('div');
+  element.className = `workclass-card ${workclass.WORKCLASSTYPE}`;
+  element.innerHTML = `
+    <div class="workclass-card-header">
+      <h3 class="workclass-card-title">${workclass.TITLE}</h3>
+      <span class="workclass-card-type">
+        ${workclass.WORKCLASSTYPE.charAt(0).toUpperCase() + workclass.WORKCLASSTYPE.slice(1)}
+      </span>
+    </div>
+    <div class="workclass-card-body">
+      <p>Due: ${dueDateString}</p>
+      <p>Status: <span class="submission-status ${statusClass}">
+        ${studentStatus}
+      </span></p>
+    </div>
+    <div class="workclass-card-footer">
+      <button class="secondary-btn" onclick="viewWorkclass('${workclass._id}')">
+        <i class="fas fa-eye"></i> View
+      </button>
+    </div>
+  `;
+  container.appendChild(element);
+});
+
   } catch (error) {
     console.error("Error loading class work:", error);
     container.innerHTML = `<p class="error-text">Unable to load workclasses. Please try again later.</p>`;
@@ -563,22 +554,42 @@ async function loadClassWork() {
 //TO POLISH
   function getStatusClass(workclass) {
     if (workclass.STATUS === 'submitted') return 'turned-in';
-    if (workclass.STATUS === 'assigned') {
-      const dueSoon = workclass.dueDate - Date.now() < 2 * 24 * 60 * 60 * 1000;
-      return dueSoon ? 'due-soon' : '';
+
+    const hasDueDate = !!workclass.DUEDATE;
+    const now = Date.now();
+
+    if (hasDueDate) {
+      const dueTime = new Date(workclass.DUEDATE).getTime();
+      if (dueTime < now) {
+        return 'missing';
+      }
+      const dueSoon = dueTime - now < 2 * 24 * 60 * 60 * 1000; // less than 2 days
+      return dueSoon ? 'due-soon' : 'assigned';
     }
-    return 'missing';
+
+    // No due date means it’s still assigned
+    return 'assigned';
   }
-  
+
   function getStatusText(workclass) {
     if (workclass.STATUS === 'submitted') return 'Turned in';
-    if (workclass.STATUS === 'published') {
-      const dueSoon = workclass.DUEDATE - Date.now() < 2 * 24 * 60 * 60 * 1000;
+
+    const hasDueDate = !!workclass.DUEDATE;
+    const now = Date.now();
+
+    if (hasDueDate) {
+      const dueTime = new Date(workclass.DUEDATE).getTime();
+      if (dueTime < now) {
+        return 'Missing';
+      }
+      const dueSoon = dueTime - now < 1 * 24 * 60 * 60 * 1000;
       return dueSoon ? 'Due soon' : 'Assigned';
     }
-    return 'Missing';
+
+    // No due date
+    return 'Assigned';
   }
-  
+
   function getGradeClass(grade) {
     if (!grade) return '';
     const percent = parseFloat(grade);
