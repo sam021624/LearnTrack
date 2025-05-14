@@ -381,7 +381,9 @@ app.get('/get-attachments-by-workclass/:workclassId', async (req, res) => {
                 title: workclass.TITLE,
                 workclasstype: workclass.WORKCLASSTYPE,
                 instructions: workclass.INSTRUCTIONS,
-                duedate: workclass.DUEDATE
+                duedate: workclass.DUEDATE,
+                pointspossible: workclass.POINTSPOSSIBLE,
+                status: workclass.STATUS
             },
             attachments: formattedAttachments
         });

@@ -584,57 +584,50 @@ async function loadClassWork() {
     return 'F';
   }
   
-  async function viewWorkclass(workclassId) {
-    let workclass = {};
-  
-  await fetch(`http://localhost:3000/get-attachments-by-workclass/${workclassId}`)
-    .then(response => response.json())
-    .then(data => {
-      const w = data.workclass || {};
+async function viewWorkclass(workclassId) {
+  const response = await fetch(`http://localhost:3000/get-attachments-by-workclass/${workclassId}`);
+  const data = await response.json();
 
-      workclass = {
-        id: w._id || workclassId,
-        title: w.title || 'Sample Workclass',
-        type: w.type || 'assignment',
-        instructions: w.instructions || 'Complete the assigned readings and answer the questions.',
-        dueDate: w.duedate ? new Date(w.duedate) : new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
-        points: w.points || 100,
-        status: w.status || 'assigned',
-        attachments: Array.isArray(data.attachments) ? data.attachments : []
-      };
+  const w = data.workclass || {};
 
-      console.log(workclass);
-    })
-    .catch(error => {
-      console.error('Error fetching workclass data:', error);
-    });
+  const workclass = {
+    id: w._id || workclassId,
+    title: w.title || 'Sample Workclass',
+    type: w.workclasstype || 'Assignment',
+    instructions: w.instructions || 'Complete the assigned readings and answer the questions.',
+    dueDate: w.duedate ? new Date(w.duedate) : null,
+    points: w.pointspossible ?? 'No Score',  // <-- Make sure the backend sends this as "pointspossible"
+    status: w.status || 'Assigned',
+    attachments: Array.isArray(data.attachments) ? data.attachments : []
+  };
 
-  
-    // Update DOM based on the dynamic workclass data
-    const container = document.getElementById('classWorkclassesContainer');
+  console.log("✅ Loaded workclass:", workclass); // Check what’s coming in
 
-    const dueDate = workclass.dueDate instanceof Date && !isNaN(workclass.dueDate)
+  // Now it's safe to update the DOM
+  const container = document.getElementById('classWorkclassesContainer');
+
+  const dueDate = workclass.dueDate instanceof Date && !isNaN(workclass.dueDate)
     ? `Due ${workclass.dueDate.toLocaleDateString()} at ${workclass.dueDate.toLocaleTimeString()}`
-    : 'Due date not set';
+    : 'No Due Date';
 
-    container.innerHTML = `
-      <div class="workclass-detail-view">
-        <div class="workclass-header">
-          <button class="back-btn" onclick="loadClassWork()">
-            <i class="fas fa-arrow-left"></i>
-          </button>
-          <div class="workclass-header-content">
-            <h1>${workclass.title}</h1>  <!-- Updated to use correct property -->
-            <div class="workclass-meta">
-              <span class="workclass-type">
-                <i class="fas ${workclass.type === 'assignment' ? 'fa-book' : 'fa-question-circle'}"></i>
-                ${workclass.type.charAt(0).toUpperCase() + workclass.type.slice(1)}
-              </span>
-              <span class="points">${workclass.points} points</span>
-              <span class="due-date">${dueDate}</span>
-            </div>
+  container.innerHTML = `
+    <div class="workclass-detail-view">
+      <div class="workclass-header">
+        <button class="back-btn" onclick="loadClassWork()">
+          <i class="fas fa-arrow-left"></i>
+        </button>
+        <div class="workclass-header-content">
+          <h1>${workclass.title}</h1>
+          <div class="workclass-meta">
+            <span class="workclass-type">
+              <i class="fas ${workclass.type === 'Assignment' ? 'fa-book' : 'fa-question-circle'}"></i>
+              ${workclass.type.charAt(0).toUpperCase() + workclass.type.slice(1)}
+            </span>
+            <span class="points">${workclass.points} Points</span>
+            <span class="due-date">${dueDate}</span>
           </div>
         </div>
+      </div>
   
         <div class="workclass-body">
           <div class="instructions-card">
