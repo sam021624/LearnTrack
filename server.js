@@ -342,11 +342,9 @@ app.get('/get-submissions-by-classcode/:classCode/:workclassId', async (req, res
     }
 });
 
-// -- Getting attachment of Professors
 app.get('/get-attachments-by-workclass/:workclassId', async (req, res) => {
     const { workclassId } = req.params;
 
-    // Validate that workclassId is a valid ObjectId
     if (!ObjectId.isValid(workclassId)) {
         return res.status(400).json({ message: 'Invalid workclassId format' });
     }
@@ -354,7 +352,6 @@ app.get('/get-attachments-by-workclass/:workclassId', async (req, res) => {
     try {
         const db = client.db(dbName);
 
-        // Find the workclass by _id
         const workclass = await db.collection('LT_Workclasses').findOne({
             _id: new ObjectId(workclassId)
         });
@@ -363,14 +360,31 @@ app.get('/get-attachments-by-workclass/:workclassId', async (req, res) => {
             return res.status(404).json({ message: 'Workclass not found' });
         }
 
-        const attachments = (workclass.ATTACHMENTS || []).map(att => ({
+        const attachmentIds = (workclass.ATTACHMENTS || [])
+            .filter(id => ObjectId.isValid(id))
+            .map(id => new ObjectId(id));
+
+        const attachments = await db.collection('LT_Attachments')
+            .find({ _id: { $in: attachmentIds } })
+            .toArray();
+
+        const formattedAttachments = attachments.map(att => ({
             NAME: att.name,
             TYPE: att.type,
             SIZE: att.size,
             BASE64DATA: att.base64Data
         }));
 
-        res.json({ attachments });
+        res.json({
+            workclass: {
+                _id: workclass._id,
+                title: workclass.TITLE,
+                workclasstype: workclass.WORKCLASSTYPE,
+                instructions: workclass.INSTRUCTIONS
+            },
+            attachments: formattedAttachments
+        });
+
     } catch (error) {
         console.error('Error in /get-attachments-by-workclass:', error);
         res.status(500).json({ message: 'Internal server error', error: error.message });

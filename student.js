@@ -578,25 +578,28 @@ async function loadClassWork() {
   async function viewWorkclass(workclassId) {
     let workclass = {};
   
-    await fetch(`http://localhost:3000/get-attachments-by-workclass/${workclassId}`)
-      .then(response => response.json())
-      .then(data => {
-        workclass = {
-          id: workclassId,
-          title: data.TITLE || 'Sample Workclass',
-          type: data.WORKCLASSTYPE || 'assignment',
-          instructions: data.INSTRUCTIONS || 'Complete the assigned readings and answer the questions.',
-          dueDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
-          points: data.POINTSPOSSIBLE || 100,
-          status: data.STATUS || 'assigned',
-          attachments: Array.isArray(data.attachments) ? data.attachments : []  // Ensure it's an array
-        };
-  
-        console.log(workclass);
-      })
-      .catch(error => {
-        console.error('Error fetching workclass data:', error);
-      });
+  await fetch(`http://localhost:3000/get-attachments-by-workclass/${workclassId}`)
+    .then(response => response.json())
+    .then(data => {
+      const w = data.workclass || {};
+
+      workclass = {
+        id: w._id || workclassId,
+        title: w.title || 'Sample Workclass',
+        type: w.type || 'assignment',
+        instructions: w.instructions || 'Complete the assigned readings and answer the questions.',
+        dueDate: new Date(w.dueDate || Date.now() + 7 * 24 * 60 * 60 * 1000),
+        points: w.points || 100,
+        status: w.status || 'assigned',
+        attachments: Array.isArray(data.attachments) ? data.attachments : []
+      };
+
+      console.log(workclass);
+    })
+    .catch(error => {
+      console.error('Error fetching workclass data:', error);
+    });
+
   
     // Update DOM based on the dynamic workclass data
     const container = document.getElementById('classWorkclassesContainer');
