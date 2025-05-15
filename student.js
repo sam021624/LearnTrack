@@ -377,25 +377,25 @@ function updateDashboardStats(subjectAverages) {
     }
 }
   
-function openClassPage(classData) {
-  currentClass = classData; // Store globally
-  classCode = classData.CLASS_CODE; // Set classCode from classData
+    let hasLoadedWork = false;  // Declare once globally
 
-  // Display class information
-  document.getElementById('classNameDisplay').textContent = classData.CLASS_NAME;
-  document.getElementById('sectionDisplay').textContent = classData.SECTION || 'N/A';
-  document.getElementById('professorDisplay').textContent = classData.NAME || 'N/A';
+  function openClassPage(classData) {
+    currentClass = classData; 
+    classCode = classData.CLASS_CODE;
 
-  // Hide all content and show class page
-  document.querySelectorAll('.content').forEach(content => {
-    content.style.display = 'none';
-  });
-  document.getElementById('classPage').style.display = 'block';
+    hasLoadedWork = false; // ✅ Reset so new class data loads
 
-  openClassTab('announcements'); // Default tab
-  loadAnnouncements(classCode); // Pass the correct classCode here
-  loadClassWork();
-}
+    document.getElementById('classNameDisplay').textContent = classData.CLASS_NAME;
+    document.getElementById('sectionDisplay').textContent = classData.SECTION || 'N/A';
+    document.getElementById('professorDisplay').textContent = classData.NAME || 'N/A';
+
+    document.querySelectorAll('.content').forEach(content => {
+      content.style.display = 'none';
+    });
+    document.getElementById('classPage').style.display = 'block';
+
+    openClassTab('announcements'); // Only one place to trigger loading
+  }
 
   function openClassTab(tabName) {
     // Hide all tab content
@@ -478,6 +478,11 @@ async function loadAnnouncements(classCode) {
 }
   
 async function loadClassWork() {
+  if (hasLoadedWork) return;
+  hasLoadedWork = true;
+
+  console.log("📘 Loading workclasses for:", classCode);
+
   const container = document.getElementById('classWorkclassesContainer');
   container.innerHTML = ''; // Clear previous content
 
