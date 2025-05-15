@@ -38,9 +38,16 @@ const studentData = {
       userFullName = user.FULL_NAME
 
       userName = user.USERNAME;
-      window.userName = user.USERNAME; 
-    }
+      window.userName = user.USERNAME;
 
+      // Now load the profile settings dynamically
+  loadProfileSettings({
+    profilePicture: 'Picture/gmailprofile.png', // or use user.PROFILE_PICTURE if available
+    fullName: user.FULL_NAME || 'Student',
+    email: user.EMAIL || 'student@example.com'
+    });
+   } 
+    
     fetchProfilePicture(userName);
     
     showJoinedClasses();
@@ -1292,6 +1299,27 @@ function confirmSignOut() {
     document.getElementById(`${tab}Settings`).classList.add('active');
   }
   
+  function loadProfileSettings(data) {
+  const formContainer = document.getElementById('profileForm');
+  formContainer.innerHTML = `
+    <div class="form-group">
+      <label>Profile Picture</label>
+      <div class="profile-upload">
+        <img id="profilePreview" src="${data.profilePicture}" alt="Profile">
+        <button class="secondary-btn" onclick="uploadProfilePicture()">Change Picture</button>
+      </div>
+    </div>
+    <div class="form-group">
+      <label>Full Name</label>
+      <input type="text" id="fullName" value="${data.fullName}">
+    </div>
+    <div class="form-group">
+      <label>Email</label>
+      <input type="email" id="email" value="${data.email}" disabled>
+    </div>
+  `;
+}
+
   function uploadProfilePicture() {
     const input = document.createElement('input');
     input.type = 'file';
