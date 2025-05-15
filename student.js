@@ -818,7 +818,7 @@ async function viewWorkclass(workclassId) {
   
 async function submitWork(workclassId) {
   const fileInput = document.getElementById('workSubmission');
-  const file = fileInput.files[0];
+  const file = fileInput?.files[0];
 
   if (!file) {
     alert("Please select a file to submit.");
@@ -828,10 +828,12 @@ async function submitWork(workclassId) {
   const formData = new FormData();
   formData.append("file", file);
   formData.append("workclassId", workclassId);
-  formData.append("studentUsername", window.userName);
-  formData.append("studentName", window.studentName);
+  formData.append("studentUsername", window.userName || userName);
+  formData.append("studentName", window.studentName || userFullName);
 
   try {
+    showLoading();
+
     const response = await fetch("http://localhost:3000/submit-work", {
       method: "POST",
       body: formData
@@ -839,26 +841,46 @@ async function submitWork(workclassId) {
 
     const result = await response.json();
 
-    if (response.ok) {
-      // Handle success: Update the UI with submission success message
-      alert("Your work has been submitted successfully.");
-      // Optionally, update the submission status in the UI
-      const statusElement = document.querySelector('.submission-status');
-      if (statusElement) {
-        statusElement.textContent = 'Turned in';
-        statusElement.classList.remove('assigned');
-        statusElement.classList.add('turned-in');
-      }
+    hideLoading();
+
+    if (response.ok && result.message === 'Work submitted successfully') {
+      showToast('Work submitted successfully!', 'success');
+
+      const container = document.getElementById('classWorkclassesContainer');
+      container.innerHTML = `
+        <div class="workclass-detail-view">
+          <button class="back-btn" onclick="loadClassWork()">
+            <i class="fas fa-arrow-left"></i> Back to Classwork
+          </button>
+
+          <div class="workclass-details card">
+            <div class="workclass-header">
+              <h2>Work Submitted</h2>
+            </div>
+
+            <div class="workclass-section">
+              <p>Your work has been submitted successfully.</p>
+              <p>Submitted file: ${file.name}</p>
+              <p>Submitted on: ${new Date().toLocaleString()}</p>
+            </div>
+
+            <button class="primary-btn" onclick="loadClassWork()">
+              <i class="fas fa-arrow-left"></i> Back to Classwork
+            </button>
+          </div>
+        </div>
+      `;
     } else {
-      alert(result.message || "There was an error submitting your work.");
+      showToast(result.message || "There was an error submitting your work.", "error");
     }
   } catch (error) {
+    hideLoading();
     console.error("Error submitting work:", error);
-    alert("An error occurred while submitting your work. Please try again.");
+    showToast("An error occurred while submitting your work. Please try again.", "error");
   }
 }
 
-   
+  
   async function updateDashboardCounts() {
     // Update basic counts from local studentData
     document.getElementById('course-count').textContent = userClasses.length;
