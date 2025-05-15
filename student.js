@@ -1471,7 +1471,9 @@ function fetchProfilePicture(username) {
       .then(response => response.json())
       .then(data => {
           if (data.PROFILE_PICTURE) {
-              document.getElementById('profilePicPreview').src = data.PROFILE_PICTURE; 
+              document.getElementById('profilePicPreview').src = data.PROFILE_PICTURE; // main
+              const settingsPreview = document.getElementById('profilePreview');
+              if (settingsPreview) settingsPreview.src = data.PROFILE_PICTURE; // settings tab
           } else {
               console.log("No profile picture found.");
           }
