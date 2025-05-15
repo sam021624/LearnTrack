@@ -1538,59 +1538,53 @@ async function openClassPage(classData) {
   currentClass = classData;
   classCode = classData.CLASS_CODE;
 
-  // Update basic class information
+  hasLoadedWork = false; // Reset flag here
+
+  // Update UI...
   document.getElementById('classNameDisplay').textContent = classData.CLASS_NAME;
   document.getElementById('sectionDisplay').textContent = classData.SECTION || 'N/A';
   document.getElementById('professorDisplay').textContent = classData.NAME || 'N/A';
 
-  // Hide all content sections and show class page
   document.querySelectorAll('.content').forEach(content => {
     content.style.display = 'none';
   });
   document.getElementById('classPage').style.display = 'block';
 
-  // Fetch and update student count
+  // Fetch students and update avatars (keep as is)
   try {
     const response = await fetch(`http://localhost:3000/class-students/${classCode}`);
     if (!response.ok) throw new Error('Failed to fetch students');
     const students = await response.json();
-    
-    // Update student count
-    const studentCount = document.querySelector('.student-count');
-    if (studentCount) {
-      studentCount.textContent = `(${students.length})`;
-    }
 
-    // Update student avatars
+    const studentCount = document.querySelector('.student-count');
+    if (studentCount) studentCount.textContent = `(${students.length})`;
+
     const avatarsContainer = document.getElementById('studentAvatars');
-    avatarsContainer.innerHTML = ''; // Clear existing avatars
-    
-      // Display up to 5 student avatars
-      students.slice(0, 5).forEach(student => {
-        const avatar = document.createElement('div');
-        avatar.className = 'student-avatar';
-        avatar.innerHTML = `
-          <img src="${defaultPicture}" alt="${student.NAME}">
-        `;
-        avatarsContainer.appendChild(avatar);
-      });
-          
-    // Add "more" indicator if there are additional students
+    avatarsContainer.innerHTML = '';
+
+    students.slice(0, 5).forEach(student => {
+      const avatar = document.createElement('div');
+      avatar.className = 'student-avatar';
+      avatar.innerHTML = `<img src="${defaultPicture}" alt="${student.NAME}">`;
+      avatarsContainer.appendChild(avatar);
+    });
+
     if (students.length > 5) {
       const moreAvatars = document.createElement('div');
       moreAvatars.className = 'more-students';
       moreAvatars.textContent = `+${students.length - 5}`;
       avatarsContainer.appendChild(moreAvatars);
     }
-
   } catch (error) {
     console.error('Error loading student count:', error);
   }
 
-  // Load announcements and classwork
-  openClassTab('announcements');
+  // Load the announcements tab by default
+  openClassTab('announcements'); 
   loadAnnouncements(classCode);
-  loadClassWork();
+
+  // Don't call loadClassWork() here directly, 
+  // let openClassTab handle it when switching to "workclasses" tab
 }
 
 // Toggle notification dropdown
